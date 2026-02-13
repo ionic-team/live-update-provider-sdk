@@ -1,8 +1,8 @@
-package io.ionic.liveupdatesintegration.provider
+package io.ionic.liveupdatesprovider.provider
 
 import android.content.Context
-import io.ionic.liveupdatesintegration.provider.models.LiveUpdatesOptions
-import io.ionic.liveupdatesintegration.provider.models.LiveUpdatesProviderConfig
+import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesOptions
+import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesProviderConfig
 
 /**
  * Provider interface for Live Updates implementations.
@@ -23,5 +23,3 @@ interface LiveUpdatesProvider {
         options: LiveUpdatesOptions
     ): LiveUpdatesManager
 }
-
-

@@ -1,4 +1,4 @@
-package io.ionic.liveupdatesintegration.provider
+package io.ionic.liveupdatesprovider.provider
 
 import java.util.concurrent.ConcurrentHashMap
 
@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentHashMap
  */
 object LiveUpdatesRegistry {
     private val providers: ConcurrentHashMap<String, LiveUpdatesProvider> = ConcurrentHashMap()
-    const val DEFAULT_PROVIDER_ID = "ionic"
 
     /**
      * Register a provider with the given ID.
@@ -43,19 +42,6 @@ object LiveUpdatesRegistry {
     fun require(providerId: String): LiveUpdatesProvider {
         return providers[providerId]
             ?: throw IllegalArgumentException("Provider with ID '$providerId' not found")
-    }
-
-    /**
-     * Resolve a provider by ID, or return the default provider if providerId is null.
-     * @param providerId Provider identifier, or null to use default
-     * @return Provider implementation, or null if not found
-     */
-    fun resolveOrDefault(providerId: String?): LiveUpdatesProvider? {
-        return if (providerId == null) {
-            resolve(DEFAULT_PROVIDER_ID)
-        } else {
-            resolve(providerId) ?: resolve(DEFAULT_PROVIDER_ID)
-        }
     }
 
     /**

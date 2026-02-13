@@ -1,8 +1,8 @@
-package io.ionic.liveupdatesintegration.provider
+package io.ionic.liveupdatesprovider.provider
 
 import android.content.Context
-import io.ionic.liveupdatesintegration.provider.models.LiveUpdatesOptions
-import io.ionic.liveupdatesintegration.provider.models.LiveUpdatesProviderConfig
+import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesOptions
+import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesProviderConfig
 import org.junit.After
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue

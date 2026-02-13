@@ -1,7 +1,7 @@
-package io.ionic.liveupdatesintegration.provider
+package io.ionic.liveupdatesprovider.provider
 
-import io.ionic.liveupdatesintegration.provider.models.LiveUpdatesConfigValue
-import io.ionic.liveupdatesintegration.provider.models.LiveUpdatesProviderConfig
+import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesConfigValue
+import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesProviderConfig
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue

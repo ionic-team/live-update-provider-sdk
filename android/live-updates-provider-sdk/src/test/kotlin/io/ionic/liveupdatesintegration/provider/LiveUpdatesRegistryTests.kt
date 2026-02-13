@@ -1,8 +1,8 @@
-package io.ionic.liveupdatesintegration.provider
+package io.ionic.liveupdatesprovider.provider
 
 import android.content.Context
-import io.ionic.liveupdatesintegration.provider.models.LiveUpdatesOptions
-import io.ionic.liveupdatesintegration.provider.models.LiveUpdatesProviderConfig
+import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesOptions
+import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesProviderConfig
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -15,28 +15,23 @@ class LiveUpdatesRegistryTests {
     @Mock
     private lateinit var mockProvider: LiveUpdatesProvider
 
-    @Mock 
-    private lateinit var secondMockProvider: LiveUpdatesProvider
-
     @Before
     fun setup() {
         // Clear registry before each test
         LiveUpdatesRegistry.clear()
-        // register mockProvider as the default "ionic" provider for tests that rely on it
-        LiveUpdatesRegistry.register(LiveUpdatesRegistry.DEFAULT_PROVIDER_ID, mockProvider)
     }
 
     @Test
     fun `register provider successfully`() {
-        LiveUpdatesRegistry.register("test-provider", secondMockProvider)
+        LiveUpdatesRegistry.register("test-provider", mockProvider)
         assertTrue(LiveUpdatesRegistry.isRegistered("test-provider"))
     }
 
     @Test
     fun `resolve registered provider returns provider`() {
-        LiveUpdatesRegistry.register("test-provider", secondMockProvider)
+        LiveUpdatesRegistry.register("test-provider", mockProvider)
         val resolved = LiveUpdatesRegistry.resolve("test-provider")
-        assertEquals(secondMockProvider, resolved)
+        assertEquals(mockProvider, resolved)
     }
 
     @Test
@@ -47,9 +42,9 @@ class LiveUpdatesRegistryTests {
 
     @Test
     fun `require registered provider returns provider`() {
-        LiveUpdatesRegistry.register("test-provider", secondMockProvider)
+        LiveUpdatesRegistry.register("test-provider", mockProvider)
         val required = LiveUpdatesRegistry.require("test-provider")
-        assertEquals(secondMockProvider, required)
+        assertEquals(mockProvider, required)
     }
 
     @Test(expected = IllegalArgumentException::class)
@@ -59,8 +54,8 @@ class LiveUpdatesRegistryTests {
 
     @Test(expected = IllegalArgumentException::class)
     fun `register duplicate provider ID throws exception`() {
-        LiveUpdatesRegistry.register("test-provider", secondMockProvider)
-        LiveUpdatesRegistry.register("test-provider", secondMockProvider)
+        LiveUpdatesRegistry.register("test-provider", mockProvider)
+        LiveUpdatesRegistry.register("test-provider", mockProvider)
     }
 
     @Test
@@ -91,32 +86,11 @@ class LiveUpdatesRegistryTests {
 
     @Test
     fun `clear removes all registered providers`() {
-        LiveUpdatesRegistry.register("test-provider", secondMockProvider)
+        LiveUpdatesRegistry.register("test-provider", mockProvider)
         assertTrue(LiveUpdatesRegistry.isRegistered("test-provider"))
 
         LiveUpdatesRegistry.clear()
 
         assertFalse(LiveUpdatesRegistry.isRegistered("test-provider"))
-    }
-
-    @Test
-    fun `resolveOrDefault with null providerId returns ionic provider if registered`() {
-        // Register the default "ionic" provider
-        val provider = LiveUpdatesRegistry.resolveOrDefault(null)
-        assertEquals(mockProvider, provider)
-    }
-
-
-    @Test
-    fun `resolveOrDefault with explicit providerId returns specified provider`() {
-        LiveUpdatesRegistry.register("custom", mockProvider)
-        val provider = LiveUpdatesRegistry.resolveOrDefault("custom")
-        assertEquals(mockProvider, provider)
-    }
-
-    @Test
-    fun `resolveOrDefault with unregistered providerId returns null`() {
-        val provider = LiveUpdatesRegistry.resolveOrDefault("nonexistent")
-        assertEquals(provider, mockProvider)
     }
 }

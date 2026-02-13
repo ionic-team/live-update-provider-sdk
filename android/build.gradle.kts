@@ -1,5 +1,5 @@
 buildscript {
-    val kotlinVersion = "1.9.25"
+    val kotlinVersion = "2.1.0"
     extra.apply {
         set("kotlinVersion", kotlinVersion)
     }
@@ -9,7 +9,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:8.7.3")
+        classpath("com.android.tools.build:gradle:8.13.0")
         classpath(kotlin("gradle-plugin", version = kotlinVersion))
     }
 }

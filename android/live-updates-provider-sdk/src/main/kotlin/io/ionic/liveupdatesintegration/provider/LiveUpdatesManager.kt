@@ -1,6 +1,6 @@
-package io.ionic.liveupdatesintegration.provider
+package io.ionic.liveupdatesprovider.provider
 
-import io.ionic.liveupdatesintegration.provider.models.LiveUpdatesSyncResult
+import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesSyncResult
 import java.io.File
 
 /**
