@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "io.ionic.liveupdates.provider"
+    namespace = "io.ionic.liveupdatesintegration.provider"
     compileSdk = 34
 
     defaultConfig {

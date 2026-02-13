@@ -1,4 +1,4 @@
-package io.ionic.liveupdates.provider.models
+package io.ionic.liveupdatesintegration.provider.models
 
 data class LiveUpdatesOptions(
     val autoUpdateMethod: AutoUpdateMethod

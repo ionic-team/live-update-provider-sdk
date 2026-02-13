@@ -1,4 +1,4 @@
-package io.ionic.liveupdates.provider.models
+package io.ionic.liveupdatesintegration.provider.models
 
 /**
  * Opaque provider configuration passed from hosts to providers.

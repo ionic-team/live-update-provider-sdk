@@ -5,7 +5,7 @@ This repository contains the Live Updates Provider API for Android and iOS, whic
 ## Project Structure
 
 ```
-live-updates-integration/
+live-updates-integration-sdk/
 ├── android/                  # Android implementation
 │   ├── live-updates-provider/
 │   └── README.md

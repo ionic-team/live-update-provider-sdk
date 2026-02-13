@@ -1,22 +1,18 @@
-package io.ionic.liveupdates.provider
+package io.ionic.liveupdatesintegration.provider
 
 import android.content.Context
-import io.ionic.liveupdates.provider.models.LiveUpdatesOptions
-import io.ionic.liveupdates.provider.models.LiveUpdatesProviderConfig
+import io.ionic.liveupdatesintegration.provider.models.LiveUpdatesOptions
+import io.ionic.liveupdatesintegration.provider.models.LiveUpdatesProviderConfig
 import org.junit.After
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner::class)
 class ErrorHandlingTests {
-
-    @Mock
-    private lateinit var mockContext: Context
 
     @Before
     fun setup() {

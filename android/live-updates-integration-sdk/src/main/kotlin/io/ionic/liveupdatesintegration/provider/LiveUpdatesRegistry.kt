@@ -1,4 +1,4 @@
-package io.ionic.liveupdates.provider
+package io.ionic.liveupdatesintegration.provider
 
 import java.util.concurrent.ConcurrentHashMap
 
@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap
  * Thread-safe registry for Live Updates provider registration and lookup.
  */
 object LiveUpdatesRegistry {
-    private val providers: ConcurrentHashMap<String, LiveUpdatesProvider> = ConcurrentHashMap()    
+    private val providers: ConcurrentHashMap<String, LiveUpdatesProvider> = ConcurrentHashMap()
     const val DEFAULT_PROVIDER_ID = "ionic"
 
     /**
@@ -52,9 +52,9 @@ object LiveUpdatesRegistry {
      */
     fun resolveOrDefault(providerId: String?): LiveUpdatesProvider? {
         return if (providerId == null) {
-            resolve(LiveUpdatesRegistry.DEFAULT_PROVIDER_ID)
+            resolve(DEFAULT_PROVIDER_ID)
         } else {
-            resolve(providerId) ?: resolve(LiveUpdatesRegistry.DEFAULT_PROVIDER_ID)
+            resolve(providerId) ?: resolve(DEFAULT_PROVIDER_ID)
         }
     }
 
