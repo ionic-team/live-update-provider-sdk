@@ -1,2 +1,2 @@
-rootProject.name = "live-updates-integration-sdk"
-include(":live-updates-integration-sdk")
+rootProject.name = "live-updates-provider-sdk"
+include(":live-updates-provider-sdk")

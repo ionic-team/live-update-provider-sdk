@@ -1,4 +1,4 @@
-package io.ionic.liveupdatesintegration.provider
+package io.ionic.liveupdatesprovider.provider
 
 import java.util.concurrent.ConcurrentHashMap
 
@@ -7,15 +7,14 @@ import java.util.concurrent.ConcurrentHashMap
  */
 object LiveUpdatesRegistry {
     private val providers: ConcurrentHashMap<String, LiveUpdatesProvider> = ConcurrentHashMap()
-    const val DEFAULT_PROVIDER_ID = "ionic"
 
     /**
      * Register a provider with the given ID.
-     * @param providerId Unique provider identifier
      * @param provider Provider implementation
      * @throws IllegalArgumentException if provider ID is empty or already registered
      */
-    fun register(providerId: String, provider: LiveUpdatesProvider) {
+    fun register(provider: LiveUpdatesProvider) {
+        val providerId = provider.id
         if (providerId.isBlank()) {
             throw IllegalArgumentException("Provider ID cannot be empty or blank")
         }
@@ -31,7 +30,7 @@ object LiveUpdatesRegistry {
      * @return Provider implementation, or null if not found
      */
     fun resolve(providerId: String): LiveUpdatesProvider? {
-        return providers[providerId];
+        return providers[providerId]
     }
 
     /**
@@ -41,21 +40,8 @@ object LiveUpdatesRegistry {
      * @throws IllegalArgumentException if provider not found
      */
     fun require(providerId: String): LiveUpdatesProvider {
-        return providers[providerId]
+        return resolve(providerId)
             ?: throw IllegalArgumentException("Provider with ID '$providerId' not found")
-    }
-
-    /**
-     * Resolve a provider by ID, or return the default provider if providerId is null.
-     * @param providerId Provider identifier, or null to use default
-     * @return Provider implementation, or null if not found
-     */
-    fun resolveOrDefault(providerId: String?): LiveUpdatesProvider? {
-        return if (providerId == null) {
-            resolve(DEFAULT_PROVIDER_ID)
-        } else {
-            resolve(providerId) ?: resolve(DEFAULT_PROVIDER_ID)
-        }
     }
 
     /**

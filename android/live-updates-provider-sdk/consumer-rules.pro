@@ -2,4 +2,4 @@
 # These rules will be applied to apps that include this library
 
 # Keep all public API classes and methods
--keep public class io.ionic.liveupdatesintegration.provider.** { *; }
+-keep public class io.ionic.liveupdatesprovider.provider.** { *; }

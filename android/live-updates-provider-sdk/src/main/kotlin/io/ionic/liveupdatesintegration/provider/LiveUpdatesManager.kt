@@ -1,6 +1,6 @@
-package io.ionic.liveupdatesintegration.provider
+package io.ionic.liveupdatesprovider.provider
 
-import io.ionic.liveupdatesintegration.provider.models.LiveUpdatesSyncResult
+import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesSyncResult
 import java.io.File
 
 /**
@@ -18,7 +18,7 @@ interface LiveUpdatesManager {
      * Get the active asset directory for this app.
      * @return File pointing to the active web assets directory, or null if no assets available
      */
-    fun getActiveAssetDirectory(): File?
+    fun currentAssetDirectory(): File?
 
     /**
      * Cancel any running sync operation for this app.

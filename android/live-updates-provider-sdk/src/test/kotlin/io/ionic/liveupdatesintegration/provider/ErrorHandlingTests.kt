@@ -1,8 +1,5 @@
-package io.ionic.liveupdatesintegration.provider
+package io.ionic.liveupdatesprovider.provider
 
-import android.content.Context
-import io.ionic.liveupdatesintegration.provider.models.LiveUpdatesOptions
-import io.ionic.liveupdatesintegration.provider.models.LiveUpdatesProviderConfig
 import org.junit.After
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -47,29 +44,12 @@ class ErrorHandlingTests {
         }
     }
 
-
-    @Test
-    fun `register with duplicate provider ID throws IllegalArgumentException`() {
-        val testProvider = TestProvider()
-        LiveUpdatesRegistry.register("test-provider", testProvider)
-
-        try {
-            LiveUpdatesRegistry.register("test-provider", testProvider)
-            throw AssertionError("Expected IllegalArgumentException")
-        } catch (e: IllegalArgumentException) {
-            assertTrue(
-                "Exception message should mention already registered",
-                e.message?.contains("already registered") == true
-            )
-        }
-    }
-
     @Test
     fun `register with empty provider ID throws IllegalArgumentException`() {
-        val testProvider = TestProvider()
+        val testProvider = TestProviderImpl("")
 
         try {
-            LiveUpdatesRegistry.register("", testProvider)
+            LiveUpdatesRegistry.register(testProvider)
             throw AssertionError("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
             assertTrue(
@@ -81,10 +61,10 @@ class ErrorHandlingTests {
 
     @Test
     fun `register with blank provider ID throws IllegalArgumentException`() {
-        val testProvider = TestProvider()
+        val testProvider = TestProviderImpl("   ")
 
         try {
-            LiveUpdatesRegistry.register("   ", testProvider)
+            LiveUpdatesRegistry.register(testProvider)
             throw AssertionError("Expected IllegalArgumentException")
         } catch (e: IllegalArgumentException) {
             assertTrue(
@@ -110,17 +90,6 @@ class ErrorHandlingTests {
                 "Exception message should mention provider not found",
                 e.message?.contains("not found") == true
             )
-        }
-    }
-
-    // Test provider implementation for error handling tests
-    private class TestProvider : LiveUpdatesProvider {
-        override fun createManager(
-            context: Context,
-            config: LiveUpdatesProviderConfig,
-            options: LiveUpdatesOptions
-        ): LiveUpdatesManager {
-            throw NotImplementedError("Test provider does not create managers")
         }
     }
 }

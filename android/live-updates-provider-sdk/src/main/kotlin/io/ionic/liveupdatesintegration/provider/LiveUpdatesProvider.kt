@@ -1,14 +1,16 @@
-package io.ionic.liveupdatesintegration.provider
+package io.ionic.liveupdatesprovider.provider
 
 import android.content.Context
-import io.ionic.liveupdatesintegration.provider.models.LiveUpdatesOptions
-import io.ionic.liveupdatesintegration.provider.models.LiveUpdatesProviderConfig
+import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesOptions
+import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesProviderConfig
 
 /**
  * Provider interface for Live Updates implementations.
  * Providers are responsible for creating manager instances for configured apps.
  */
 interface LiveUpdatesProvider {
+    var id: String
+
     /**
      * Create a manager instance for the specified app configuration.
      * @param context Android context
@@ -23,5 +25,3 @@ interface LiveUpdatesProvider {
         options: LiveUpdatesOptions
     ): LiveUpdatesManager
 }
-
-
