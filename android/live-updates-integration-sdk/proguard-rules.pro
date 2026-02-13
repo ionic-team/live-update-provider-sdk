@@ -6,7 +6,7 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Keep all public API classes and methods
--keep public class io.ionic.liveupdates.provider.** { *; }
+-keep public class io.ionic.liveupdatesintegration.provider.** { *; }
 
 # Keep Kotlin coroutines
 -keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}

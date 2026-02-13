@@ -1,4 +1,4 @@
-package io.ionic.liveupdates.provider.models
+package io.ionic.liveupdatesintegration.provider.models
 
 import java.io.File
 

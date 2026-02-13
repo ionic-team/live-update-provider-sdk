@@ -10,15 +10,15 @@ android/
 ├── settings.gradle.kts           # Module configuration
 ├── gradle/                       # Gradle wrapper files
 ├── gradlew                       # Gradle wrapper script (Unix)
-├── gradlew.bat                   # Gradle wrapper script (Windows)
-└── live-updates-provider/        # Android library module
+├── gradlew.bat # Gradle wrapper script (Windows)
+└── live-updates-integrations-sdk/        # Android library module
     ├── build.gradle.kts          # Module build configuration
     ├── proguard-rules.pro        # ProGuard rules
     ├── consumer-rules.pro        # Consumer ProGuard rules
     └── src/
         ├── main/
         │   ├── AndroidManifest.xml   # Android manifest
-        │   └── kotlin/io/ionic/liveupdates/provider/
+        │   └── kotlin/io/ionic/liveupdatesintegration/provider/
         │       ├── LiveUpdatesProvider.kt       # Provider interface
         │       ├── LiveUpdatesManager.kt        # Manager interface
         │       ├── LiveUpdatesRegistry.kt       # Provider registry
@@ -27,7 +27,7 @@ android/
         │           ├── LiveUpdatesOptions.kt        # Options data classes
         │           └── LiveUpdatesSyncResult.kt     # Result data classes
         └── test/
-            └── kotlin/io/ionic/liveupdates/provider/ # Unit tests
+            └── kotlin/io/ionic/liveupdatesintegration/provider/ # Unit tests
 ```
 
 ## Overview
