@@ -1,6 +1,6 @@
 import Foundation
 
-public struct LiveUpdatesProviderConfig: Sendable {
+public struct ProviderConfig: Sendable {
     private let data: [String: Sendable]
     
     public init(dictionary: [String: Sendable]) {
@@ -12,7 +12,7 @@ public struct LiveUpdatesProviderConfig: Sendable {
     }
 }
 
-public struct LiveUpdatesSyncResult: Sendable, Equatable {
+public struct SyncResult: Sendable, Equatable {
     public let didUpdate: Bool
     public let latestAppDirectory: URL?
     
