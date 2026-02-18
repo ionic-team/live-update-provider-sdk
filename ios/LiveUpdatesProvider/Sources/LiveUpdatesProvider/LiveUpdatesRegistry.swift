@@ -14,8 +14,10 @@ public final class LiveUpdatesRegistry: @unchecked Sendable {
         defer { lock.unlock() }
         
         if providers[provider.id] != nil {
-            assertionFailure("LiveUpdatesRegistry: Provider with ID '\(provider.id)' is already registered.")
-            print("LiveUpdatesRegistry Warning: Provider with ID '\(provider.id)' is being overwritten.")
+            let message = "LiveUpdatesRegistry: Provider with ID '\(provider.id)' is already registered. Ignoring subsequent registration."
+            print(message)
+            assertionFailure(message)
+            return
         }
         
         providers[provider.id] = provider
