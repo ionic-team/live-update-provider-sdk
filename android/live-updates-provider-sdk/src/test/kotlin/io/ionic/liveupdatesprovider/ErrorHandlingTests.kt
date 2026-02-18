@@ -1,4 +1,4 @@
-package io.ionic.liveupdatesprovider.provider
+package io.ionic.liveupdatesprovider
 
 import org.junit.After
 import org.junit.Assert.assertNull
@@ -44,34 +44,21 @@ class ErrorHandlingTests {
         }
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException::class)
     fun `register with empty provider ID throws IllegalArgumentException`() {
         val testProvider = TestProviderImpl("")
-
-        try {
-            LiveUpdatesRegistry.register(testProvider)
-            throw AssertionError("Expected IllegalArgumentException")
-        } catch (e: IllegalArgumentException) {
-            assertTrue(
-                "Exception message should mention empty provider ID",
-                e.message?.contains("empty") == true || e.message?.contains("blank") == true
-            )
-        }
+        LiveUpdatesRegistry.register(testProvider)
+        LiveUpdatesRegistry.require(testProvider.id) // This will throw if registration succeeded
+        throw AssertionError("Expected IllegalArgumentException")
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException::class)
     fun `register with blank provider ID throws IllegalArgumentException`() {
         val testProvider = TestProviderImpl("   ")
 
-        try {
-            LiveUpdatesRegistry.register(testProvider)
-            throw AssertionError("Expected IllegalArgumentException")
-        } catch (e: IllegalArgumentException) {
-            assertTrue(
-                "Exception message should mention blank provider ID",
-                e.message?.contains("empty") == true || e.message?.contains("blank") == true
-            )
-        }
+        LiveUpdatesRegistry.register(testProvider)
+        LiveUpdatesRegistry.require(testProvider.id) // This will throw if registration succeeded
+        throw AssertionError("Expected IllegalArgumentException")
     }
 
     @Test

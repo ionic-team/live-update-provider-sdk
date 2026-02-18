@@ -24,9 +24,8 @@ The Live Updates Provider API defines a standard interface for live update imple
 - **LiveUpdatesProvider**: Creates manager instances for configured apps
 - **LiveUpdatesManager**: Handles sync operations for a single app
 - **LiveUpdatesRegistry**: Thread-safe registry for provider registration and lookup
-- **LiveUpdatesProviderConfig**: Opaque configuration passed to providers
-- **LiveUpdatesOptions**: Auto-update method configuration
-- **LiveUpdatesSyncResult**: Result of sync operations
+- **ProviderConfig**: Opaque configuration passed to providers
+- **SyncResult**: Result of sync operations
 
 Each platform implementation provides a default Ionic provider that integrates with Ionic Appflow.
 

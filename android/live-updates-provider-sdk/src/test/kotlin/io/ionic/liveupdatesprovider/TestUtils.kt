@@ -1,8 +1,7 @@
-package io.ionic.liveupdatesprovider.provider
+package io.ionic.liveupdatesprovider
 
 import android.content.Context
-import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesOptions
-import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesProviderConfig
+import io.ionic.liveupdatesprovider.models.ProviderConfig
 
 /**
  * Test provider implementation for use in unit tests.
@@ -11,10 +10,8 @@ import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesProviderConfig
 class TestProviderImpl(override var id: String) : LiveUpdatesProvider {
     override fun createManager(
         context: Context,
-        config: LiveUpdatesProviderConfig,
-        options: LiveUpdatesOptions
+        config: ProviderConfig
     ): LiveUpdatesManager {
         throw NotImplementedError("Test provider does not create managers")
     }
 }
-

@@ -1,8 +1,7 @@
-package io.ionic.liveupdatesprovider.provider
+package io.ionic.liveupdatesprovider
 
 import android.content.Context
-import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesOptions
-import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesProviderConfig
+import io.ionic.liveupdatesprovider.models.ProviderConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -19,7 +18,7 @@ import org.mockito.junit.MockitoJUnitRunner
 import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(MockitoJUnitRunner::class)
-class LiveUpdatesRegistryConcurrencyTests {
+class RegistryConcurrencyTests {
 
     @Before
     fun setup() {
@@ -135,38 +134,30 @@ class LiveUpdatesRegistryConcurrencyTests {
     fun `registry handles concurrent registrations with same ID safely`() = runBlocking {
         val providerId = "test-provider"
         val attemptCount = 20
-        val successCount = AtomicInteger(0)
-        val failureCount = AtomicInteger(0)
 
+        val firstProvider = TestProvider(providerId)
+        LiveUpdatesRegistry.register(firstProvider)
         // Attempt to register same provider ID concurrently
         val jobs = (0 until attemptCount).map {
             launch(Dispatchers.Default) {
-                try {
-                    LiveUpdatesRegistry.register(TestProviderImpl(providerId))
-                    successCount.incrementAndGet()
-                } catch (_: IllegalArgumentException) {
-                    failureCount.incrementAndGet()
-                }
+                val testProvider = TestProvider(providerId)
+                LiveUpdatesRegistry.register(testProvider)
             }
         }
 
         // Wait for all attempts
         jobs.joinAll()
 
-        // Exactly one registration should succeed, others should fail
-        assertEquals(1, successCount.get())
-        assertEquals(attemptCount - 1, failureCount.get())
-
         // Provider should be registered
         assertTrue(LiveUpdatesRegistry.isRegistered(providerId))
+        assertEquals(firstProvider, LiveUpdatesRegistry.resolve(providerId))
     }
 
     // Test provider implementation
     private class TestProvider(override var id: String) : LiveUpdatesProvider {
         override fun createManager(
             context: Context,
-            config: LiveUpdatesProviderConfig,
-            options: LiveUpdatesOptions
+            config: ProviderConfig
         ): LiveUpdatesManager {
             // Not used in these tests
             throw NotImplementedError("Test provider does not create managers")

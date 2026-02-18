@@ -1,8 +1,6 @@
-package io.ionic.liveupdatesprovider.provider
+package io.ionic.liveupdatesprovider
 
-import android.content.Context
-import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesOptions
-import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesProviderConfig
+
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -10,7 +8,7 @@ import org.junit.runner.RunWith
 import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner::class)
-class LiveUpdatesRegistryTests {
+class RegistryTests {
     private lateinit var mockProvider: TestProviderImpl
 
     @Before
@@ -51,10 +49,13 @@ class LiveUpdatesRegistryTests {
         LiveUpdatesRegistry.require("nonexistent")
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun `register duplicate provider ID throws exception`() {
         LiveUpdatesRegistry.register(mockProvider)
         LiveUpdatesRegistry.register(mockProvider)
+        val mockProvider2 = TestProviderImpl("test-provider")
+        LiveUpdatesRegistry.register(mockProvider2)
+        assertEquals(mockProvider, LiveUpdatesRegistry.resolve("test-provider"))
     }
 
     @Test

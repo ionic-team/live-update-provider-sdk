@@ -23,9 +23,8 @@ android/
         │       ├── LiveUpdatesManager.kt        # Manager interface
         │       ├── LiveUpdatesRegistry.kt       # Provider registry
         │       └── models/
-        │           ├── LiveUpdatesProviderConfig.kt # Configuration data classes
-        │           ├── LiveUpdatesOptions.kt        # Options data classes
-        │           └── LiveUpdatesSyncResult.kt     # Result data classes
+        │           ├── ProviderConfig.kt # Configuration data classes
+        │           └── SyncResult.kt     # Result data classes
         └── test/
             └── kotlin/io/ionic/liveupdatesprovider/provider/ # Unit tests
 ```
@@ -37,9 +36,8 @@ The Live Updates Provider API defines a standard interface for live update imple
 - **LiveUpdatesProvider**: Creates manager instances for configured apps
 - **LiveUpdatesManager**: Handles sync operations for a single app
 - **LiveUpdatesRegistry**: Thread-safe registry for provider registration and lookup
-- **LiveUpdatesProviderConfig**: Opaque configuration passed to providers
-- **LiveUpdatesOptions**: Auto-update method configuration
-- **LiveUpdatesSyncResult**: Result of sync operations
+- **ProviderConfig**: Opaque configuration passed to providers
+- **SyncResult**: Result of sync operations
 
 ## Building
 
@@ -82,16 +80,14 @@ LiveUpdatesRegistry.register("my-provider", MyLiveUpdatesProvider)
 
 // Lookup and create manager
 val provider = LiveUpdatesRegistry.require("my-provider")
-val config = LiveUpdatesProviderConfig(
+val config = ProviderConfig(
     values = mapOf(
-        "appId" to LiveUpdatesConfigValue.StringValue("your-app-id"),
-        "channel" to LiveUpdatesConfigValue.StringValue("your-channel")
+        "appId" to "your-app-id",
+        "channel" to "your-channel"
     )
 )
-val options = LiveUpdatesOptions(
-    autoUpdateMethod = LiveUpdatesOptions.AutoUpdateMethod.BACKGROUND
-)
-val manager = provider.createManager(context, config, options)
+
+val manager = provider.createManager(context, config)
 
 // Perform sync
 val result = manager.sync()

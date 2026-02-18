@@ -1,8 +1,7 @@
-package io.ionic.liveupdatesprovider.provider
+package io.ionic.liveupdatesprovider
 
 import android.content.Context
-import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesOptions
-import io.ionic.liveupdatesprovider.provider.models.LiveUpdatesProviderConfig
+import io.ionic.liveupdatesprovider.models.ProviderConfig
 
 /**
  * Provider interface for Live Updates implementations.
@@ -15,13 +14,11 @@ interface LiveUpdatesProvider {
      * Create a manager instance for the specified app configuration.
      * @param context Android context
      * @param config Provider-specific configuration
-     * @param options Live Updates options (e.g., autoUpdateMethod)
      * @return LiveUpdatesManager instance
      * @throws IllegalArgumentException if config is invalid
      */
     fun createManager(
         context: Context,
-        config: LiveUpdatesProviderConfig,
-        options: LiveUpdatesOptions
+        config: ProviderConfig
     ): LiveUpdatesManager
 }

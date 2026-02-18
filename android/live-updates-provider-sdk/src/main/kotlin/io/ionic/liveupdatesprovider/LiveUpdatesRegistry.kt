@@ -1,5 +1,6 @@
-package io.ionic.liveupdatesprovider.provider
+package io.ionic.liveupdatesprovider
 
+import android.util.Log
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -11,15 +12,17 @@ object LiveUpdatesRegistry {
     /**
      * Register a provider with the given ID.
      * @param provider Provider implementation
-     * @throws IllegalArgumentException if provider ID is empty or already registered
      */
     fun register(provider: LiveUpdatesProvider) {
         val providerId = provider.id
-        if (providerId.isBlank()) {
-            throw IllegalArgumentException("Provider ID cannot be empty or blank")
+        val msg = when {
+            providerId.isBlank() -> "Provider ID cannot be empty"
+            isRegistered(providerId) -> "Provider with ID '$providerId' is already registered"
+            else -> null
         }
-        if (isRegistered(providerId)) {
-            throw IllegalArgumentException("Provider with ID '$providerId' is already registered")
+        if (msg != null) {
+            Log.w("LiveUpdatesRegistry", "$msg, ignoring registration")
+            return
         }
         providers[providerId] = provider
     }
