@@ -15,11 +15,13 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "LiveUpdatesProvider"
+            name: "LiveUpdatesProvider",
+            path: "ios/LiveUpdatesProvider/Sources"
         ),
         .testTarget(
             name: "LiveUpdatesProviderTests",
-            dependencies: ["LiveUpdatesProvider"]
+            dependencies: ["LiveUpdatesProvider"],
+            path: "ios/LiveUpdatesProvider/Tests"
         ),
     ]
 )
