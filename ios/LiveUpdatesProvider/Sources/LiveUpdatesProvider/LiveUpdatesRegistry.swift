@@ -10,6 +10,13 @@ public final class LiveUpdatesRegistry: @unchecked Sendable {
     private init() {}
     
     public func register(_ provider: any LiveUpdatesProvider) {
+        guard !provider.id.isEmpty else {
+            let message = "LiveUpdatesRegistry: Cannot register a provider with an empty ID."
+            print(message)
+            assertionFailure(message)
+            return
+        }
+        
         lock.lock()
         defer { lock.unlock() }
         
