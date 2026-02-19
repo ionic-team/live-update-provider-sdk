@@ -9,7 +9,7 @@ final class LiveUpdatesModelsTests: XCTestCase {
             "timeout": 30,
             "isEnabled": true
         ]
-        let config = LiveUpdatesProviderConfig(dictionary: dictionary)
+        let config = ProviderConfig(dictionary: dictionary)
         
         XCTAssertEqual(config.value(for: "appId"), "12345")
         XCTAssertEqual(config.value(for: "timeout"), 30)
@@ -20,7 +20,7 @@ final class LiveUpdatesModelsTests: XCTestCase {
     
     func testSyncResultInitialization() {
         let url = URL(string: "file:///app/www")
-        let result = LiveUpdatesSyncResult(didUpdate: true, latestAppDirectory: url)
+        let result = SyncResult(didUpdate: true, latestAppDirectory: url)
         
         XCTAssertTrue(result.didUpdate)
         XCTAssertEqual(result.latestAppDirectory, url)

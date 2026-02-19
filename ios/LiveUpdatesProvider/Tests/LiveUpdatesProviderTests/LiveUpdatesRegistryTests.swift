@@ -5,14 +5,14 @@ import XCTest
 final class MockProvider: LiveUpdatesProvider {
     let id: String
     init(id: String) { self.id = id }
-    func createManager(config: LiveUpdatesProviderConfig) throws -> any LiveUpdatesManaging {
+    func createManager(config: ProviderConfig) throws -> any LiveUpdatesManaging {
         return MockManager()
     }
 }
 
 struct MockManager: LiveUpdatesManaging {
-    func sync() async throws -> LiveUpdatesSyncResult {
-        return LiveUpdatesSyncResult(didUpdate: true, latestAppDirectory: nil)
+    func sync() async throws -> SyncResult {
+        return SyncResult(didUpdate: true, latestAppDirectory: nil)
     }
     func latestAppDirectory() -> URL? { return nil }
 }
