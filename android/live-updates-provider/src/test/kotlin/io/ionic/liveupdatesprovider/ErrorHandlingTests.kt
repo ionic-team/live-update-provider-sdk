@@ -32,11 +32,11 @@ class ErrorHandlingTests {
     }
 
     @Test
-    fun `require with unregistered provider ID throws IllegalArgumentException`() {
+    fun `require with unregistered provider ID throws ProviderNotRegistered`() {
         try {
             LiveUpdatesRegistry.require("nonexistent-provider")
-            throw AssertionError("Expected IllegalArgumentException")
-        } catch (e: IllegalArgumentException) {
+            throw AssertionError("Expected LiveUpdatesError.ProviderNotRegistered")
+        } catch (e: LiveUpdatesError.ProviderNotRegistered) {
             assertTrue(
                 "Exception message should mention provider not found",
                 e.message?.contains("not found") == true
@@ -44,21 +44,21 @@ class ErrorHandlingTests {
         }
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `register with empty provider ID throws IllegalArgumentException`() {
+    @Test(expected = LiveUpdatesError.ProviderNotRegistered::class)
+    fun `register with empty provider ID does not register and require throws`() {
         val testProvider = TestProviderImpl("")
         LiveUpdatesRegistry.register(testProvider)
         LiveUpdatesRegistry.require(testProvider.id) // This will throw if registration succeeded
-        throw AssertionError("Expected IllegalArgumentException")
+        throw AssertionError("Expected LiveUpdatesError.ProviderNotRegistered")
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `register with blank provider ID throws IllegalArgumentException`() {
+    @Test(expected = LiveUpdatesError.ProviderNotRegistered::class)
+    fun `register with blank provider ID does not register and require throws`() {
         val testProvider = TestProviderImpl("   ")
 
         LiveUpdatesRegistry.register(testProvider)
         LiveUpdatesRegistry.require(testProvider.id) // This will throw if registration succeeded
-        throw AssertionError("Expected IllegalArgumentException")
+        throw AssertionError("Expected LiveUpdatesError.ProviderNotRegistered")
     }
 
     @Test
@@ -68,11 +68,11 @@ class ErrorHandlingTests {
     }
 
     @Test
-    fun `require with empty provider ID throws IllegalArgumentException`() {
+    fun `require with empty provider ID throws ProviderNotRegistered`() {
         try {
             LiveUpdatesRegistry.require("")
-            throw AssertionError("Expected IllegalArgumentException")
-        } catch (e: IllegalArgumentException) {
+            throw AssertionError("Expected LiveUpdatesError.ProviderNotRegistered")
+        } catch (e: LiveUpdatesError.ProviderNotRegistered) {
             assertTrue(
                 "Exception message should mention provider not found",
                 e.message?.contains("not found") == true

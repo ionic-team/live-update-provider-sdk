@@ -37,7 +37,7 @@ class RegistryConcurrencyTests {
         // Create 20 mock providers
         val providerCount = 20
         val providers = (0 until providerCount).map { index ->
-            TestProvider("provider-$index")
+            TestProviderImpl("provider-$index")
         }
 
         // Register providers concurrently using coroutines
@@ -54,7 +54,7 @@ class RegistryConcurrencyTests {
         for (index in 0 until providerCount) {
             assertTrue(
                 "Provider $index should be registered",
-                LiveUpdatesRegistry.isRegistered("provider-$index")
+                LiveUpdatesRegistry.resolve("provider-$index") != null
             )
         }
     }
@@ -64,7 +64,7 @@ class RegistryConcurrencyTests {
         // Register 10 providers
         val providerCount = 10
         for (index in 0 until providerCount) {
-            LiveUpdatesRegistry.register(TestProvider("provider-$index"))
+            LiveUpdatesRegistry.register(TestProviderImpl("provider-$index"))
         }
 
         // Resolve providers concurrently
@@ -101,7 +101,7 @@ class RegistryConcurrencyTests {
                         // Register
                         val providerId = "provider-${index % providerCount}"
                         try {
-                            LiveUpdatesRegistry.register(TestProvider(providerId))
+                            LiveUpdatesRegistry.register(TestProviderImpl(providerId))
                         } catch (_: IllegalArgumentException) {
                             // Duplicate registration expected in concurrent scenario
                         }
@@ -114,7 +114,7 @@ class RegistryConcurrencyTests {
                     else -> {
                         // Check registration
                         val providerId = "provider-${index % providerCount}"
-                        LiveUpdatesRegistry.isRegistered(providerId)
+                        LiveUpdatesRegistry.resolve(providerId) != null
                     }
                 }
             }
@@ -126,7 +126,7 @@ class RegistryConcurrencyTests {
         // Verify registry is still consistent
         assertTrue(
             "At least some providers should be registered",
-            (0 until providerCount).any { LiveUpdatesRegistry.isRegistered("provider-$it") }
+            (0 until providerCount).any { LiveUpdatesRegistry.resolve("provider-$it") != null }
         )
     }
 
@@ -135,12 +135,12 @@ class RegistryConcurrencyTests {
         val providerId = "test-provider"
         val attemptCount = 20
 
-        val firstProvider = TestProvider(providerId)
+        val firstProvider = TestProviderImpl(providerId)
         LiveUpdatesRegistry.register(firstProvider)
         // Attempt to register same provider ID concurrently
         val jobs = (0 until attemptCount).map {
             launch(Dispatchers.Default) {
-                val testProvider = TestProvider(providerId)
+                val testProvider = TestProviderImpl(providerId)
                 LiveUpdatesRegistry.register(testProvider)
             }
         }
@@ -149,18 +149,7 @@ class RegistryConcurrencyTests {
         jobs.joinAll()
 
         // Provider should be registered
-        assertTrue(LiveUpdatesRegistry.isRegistered(providerId))
+        assertTrue(LiveUpdatesRegistry.resolve(providerId) != null)
         assertEquals(firstProvider, LiveUpdatesRegistry.resolve(providerId))
-    }
-
-    // Test provider implementation
-    private class TestProvider(override var id: String) : LiveUpdatesProvider {
-        override fun createManager(
-            context: Context,
-            config: ProviderConfig
-        ): LiveUpdatesManager {
-            // Not used in these tests
-            throw NotImplementedError("Test provider does not create managers")
-        }
     }
 }

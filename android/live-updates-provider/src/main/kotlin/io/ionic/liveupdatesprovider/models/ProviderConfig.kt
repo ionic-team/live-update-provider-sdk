@@ -7,4 +7,6 @@ data class ProviderConfig(
     inline fun <reified T> value(key: String): T? {
         return data[key] as? T
     }
+
+    fun <T> value(key: String, type: Class<T>): T? = type.cast(data[key])
 }

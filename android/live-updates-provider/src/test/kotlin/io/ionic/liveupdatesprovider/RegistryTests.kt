@@ -21,7 +21,7 @@ class RegistryTests {
     @Test
     fun `register provider successfully`() {
         LiveUpdatesRegistry.register(mockProvider)
-        assertTrue(LiveUpdatesRegistry.isRegistered("test-provider"))
+        assertTrue(LiveUpdatesRegistry.resolve("test-provider") != null)
     }
 
     @Test
@@ -44,7 +44,7 @@ class RegistryTests {
         assertEquals(mockProvider, required)
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test(expected = LiveUpdatesError.ProviderNotRegistered::class)
     fun `require unregistered provider throws exception`() {
         LiveUpdatesRegistry.require("nonexistent")
     }
@@ -59,8 +59,8 @@ class RegistryTests {
     }
 
     @Test
-    fun `isRegistered returns false for unregistered provider`() {
-        assertFalse(LiveUpdatesRegistry.isRegistered("nonexistent"))
+    fun `resolve returns null for unregistered provider`() {
+        assertNull(LiveUpdatesRegistry.resolve("nonexistent"))
     }
 
     @Test
@@ -71,8 +71,8 @@ class RegistryTests {
         LiveUpdatesRegistry.register(mockProvider1)
         LiveUpdatesRegistry.register(mockProvider2)
 
-        assertTrue(LiveUpdatesRegistry.isRegistered("provider1"))
-        assertTrue(LiveUpdatesRegistry.isRegistered("provider2"))
+        assertTrue(LiveUpdatesRegistry.resolve("provider1") != null)
+        assertTrue(LiveUpdatesRegistry.resolve("provider2") != null)
         assertEquals(mockProvider1, LiveUpdatesRegistry.resolve("provider1"))
         assertEquals(mockProvider2, LiveUpdatesRegistry.resolve("provider2"))
     }
@@ -80,10 +80,10 @@ class RegistryTests {
     @Test
     fun `clear removes all registered providers`() {
         LiveUpdatesRegistry.register(mockProvider)
-        assertTrue(LiveUpdatesRegistry.isRegistered("test-provider"))
+        assertTrue(LiveUpdatesRegistry.resolve("test-provider") != null)
 
         LiveUpdatesRegistry.clear()
 
-        assertFalse(LiveUpdatesRegistry.isRegistered("test-provider"))
+        assertNull(LiveUpdatesRegistry.resolve("test-provider"))
     }
 }

@@ -7,7 +7,7 @@ This repository contains the Live Updates Provider API for Android and iOS, whic
 ```
 live-updates-provider-sdk/
 ├── android/                  # Android implementation
-│   ├── live-updates-provider-sdk/
+│   ├── live-updates-provider/
 │   └── README.md
 └── ios/                      # iOS implementation (coming soon)
 ```
