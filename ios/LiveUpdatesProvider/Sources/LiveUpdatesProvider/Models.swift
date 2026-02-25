@@ -26,8 +26,8 @@ public struct SyncResult: Sendable, Equatable {
     }
 }
 
-public enum LiveUpdatesError: Error, Sendable, Equatable {
+public enum LiveUpdatesError: Error, Sendable {
     case providerNotRegistered(String)
-    case invalidConfiguration(String)
-    case syncFailed(message: String)
+    case invalidConfiguration(String, underlyingError: (any Error)? = nil)
+    case syncFailed(String, underlyingError: (any Error)? = nil)
 }
