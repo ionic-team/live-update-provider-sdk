@@ -1,7 +1,7 @@
 import Foundation
 
-public final class LiveUpdatesRegistry: @unchecked Sendable {
-    public static let shared = LiveUpdatesRegistry()
+public final class LiveUpdatesProviderRegistry: @unchecked Sendable {
+    public static let shared = LiveUpdatesProviderRegistry()
     
     private var providers = [String: any LiveUpdatesProvider]()
     

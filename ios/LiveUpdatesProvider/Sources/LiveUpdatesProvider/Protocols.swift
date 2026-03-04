@@ -5,10 +5,10 @@ public protocol LiveUpdatesProvider: Sendable {
     
     func createManager(
         config: ProviderConfig
-    ) throws -> any LiveUpdatesManaging
+    ) throws -> any LiveUpdateManaging
 }
 
-public protocol LiveUpdatesManaging: Sendable {
+public protocol LiveUpdateManaging: Sendable {
     func sync() async throws -> SyncResult
     func latestAppDirectory() -> URL?
 }
