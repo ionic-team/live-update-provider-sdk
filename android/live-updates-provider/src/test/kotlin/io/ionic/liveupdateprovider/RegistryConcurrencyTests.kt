@@ -1,7 +1,6 @@
-package io.ionic.liveupdatesprovider
+package io.ionic.liveupdateprovider
 
 import android.content.Context
-import io.ionic.liveupdatesprovider.models.ProviderConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -23,13 +22,13 @@ class RegistryConcurrencyTests {
     @Before
     fun setup() {
         // Clear registry before each test
-        LiveUpdatesRegistry.clear()
+        LiveUpdateProviderRegistry.clear()
     }
 
     @After
     fun teardown() {
         // Clean up after each test
-        LiveUpdatesRegistry.clear()
+        LiveUpdateProviderRegistry.clear()
     }
 
     @Test
@@ -43,7 +42,7 @@ class RegistryConcurrencyTests {
         // Register providers concurrently using coroutines
         val jobs = providers.map { provider ->
             async(Dispatchers.Default) {
-                LiveUpdatesRegistry.register(provider)
+                LiveUpdateProviderRegistry.register(provider)
             }
         }
 
@@ -54,7 +53,7 @@ class RegistryConcurrencyTests {
         for (index in 0 until providerCount) {
             assertTrue(
                 "Provider $index should be registered",
-                LiveUpdatesRegistry.resolve("provider-$index") != null
+                LiveUpdateProviderRegistry.resolve("provider-$index") != null
             )
         }
     }
@@ -64,7 +63,7 @@ class RegistryConcurrencyTests {
         // Register 10 providers
         val providerCount = 10
         for (index in 0 until providerCount) {
-            LiveUpdatesRegistry.register(TestProviderImpl("provider-$index"))
+            LiveUpdateProviderRegistry.register(TestProviderImpl("provider-$index"))
         }
 
         // Resolve providers concurrently
@@ -74,7 +73,7 @@ class RegistryConcurrencyTests {
         val jobs = (0 until resolveCount).map {
             launch(Dispatchers.Default) {
                 val providerIndex = it % providerCount
-                val provider = LiveUpdatesRegistry.resolve("provider-$providerIndex")
+                val provider = LiveUpdateProviderRegistry.resolve("provider-$providerIndex")
                 if (provider != null) {
                     successCount.incrementAndGet()
                 }
@@ -101,7 +100,7 @@ class RegistryConcurrencyTests {
                         // Register
                         val providerId = "provider-${index % providerCount}"
                         try {
-                            LiveUpdatesRegistry.register(TestProviderImpl(providerId))
+                            LiveUpdateProviderRegistry.register(TestProviderImpl(providerId))
                         } catch (_: IllegalArgumentException) {
                             // Duplicate registration expected in concurrent scenario
                         }
@@ -109,12 +108,12 @@ class RegistryConcurrencyTests {
                     1 -> {
                         // Resolve
                         val providerId = "provider-${index % providerCount}"
-                        LiveUpdatesRegistry.resolve(providerId)
+                        LiveUpdateProviderRegistry.resolve(providerId)
                     }
                     else -> {
                         // Check registration
                         val providerId = "provider-${index % providerCount}"
-                        LiveUpdatesRegistry.resolve(providerId) != null
+                        LiveUpdateProviderRegistry.resolve(providerId) != null
                     }
                 }
             }
@@ -126,7 +125,7 @@ class RegistryConcurrencyTests {
         // Verify registry is still consistent
         assertTrue(
             "At least some providers should be registered",
-            (0 until providerCount).any { LiveUpdatesRegistry.resolve("provider-$it") != null }
+            (0 until providerCount).any { LiveUpdateProviderRegistry.resolve("provider-$it") != null }
         )
     }
 
@@ -136,12 +135,12 @@ class RegistryConcurrencyTests {
         val attemptCount = 20
 
         val firstProvider = TestProviderImpl(providerId)
-        LiveUpdatesRegistry.register(firstProvider)
+        LiveUpdateProviderRegistry.register(firstProvider)
         // Attempt to register same provider ID concurrently
         val jobs = (0 until attemptCount).map {
             launch(Dispatchers.Default) {
                 val testProvider = TestProviderImpl(providerId)
-                LiveUpdatesRegistry.register(testProvider)
+                LiveUpdateProviderRegistry.register(testProvider)
             }
         }
 
@@ -149,7 +148,7 @@ class RegistryConcurrencyTests {
         jobs.joinAll()
 
         // Provider should be registered
-        assertTrue(LiveUpdatesRegistry.resolve(providerId) != null)
-        assertEquals(firstProvider, LiveUpdatesRegistry.resolve(providerId))
+        assertTrue(LiveUpdateProviderRegistry.resolve(providerId) != null)
+        assertEquals(firstProvider, LiveUpdateProviderRegistry.resolve(providerId))
     }
 }

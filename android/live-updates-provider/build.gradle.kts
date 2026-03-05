@@ -11,7 +11,7 @@ if (System.getenv("LIVEUPDATESPROVIDER_PUBLISH") == "true") {
 }
 
 android {
-    namespace = "io.ionic.liveupdatesprovider.provider"
+    namespace = "io.ionic.liveupdateprovider.provider"
     compileSdk = 36
 
     defaultConfig {
@@ -39,6 +39,12 @@ android {
 
     kotlinOptions {
         jvmTarget = "21"
+    }
+
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+        }
     }
 }
 

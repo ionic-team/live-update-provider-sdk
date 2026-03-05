@@ -35,22 +35,29 @@ The provider API module depends on:
 
 ## Usage
 
-Providers register themselves with the `LiveUpdatesRegistry`:
+Providers register themselves with the `LiveUpdateProviderRegistry`:
 
 ```kotlin
 // Register a provider implementation
-LiveUpdatesRegistry.register(myProviderInstance)
+LiveUpdateProviderRegistry.register(myProviderInstance)
 
 // Resolve and create a manager
-val provider = LiveUpdatesRegistry.require("provider-id") // LiveUpdatesRegistry.resolve("provider-id")
-val config = ProviderConfig(mapOf("appId" to "my-app", "channel" to "your-channel"))
+val provider = LiveUpdateProviderRegistry.require("provider-id") // LiveUpdateProviderRegistry.resolve("provider-id")
+val config = mapOf("appId" to "my-app", "channel" to "your-channel")
 val manager = provider.createManager(context, config)
 
-// Sync and check for updates
-val result = manager.sync()
-if (result.didUpdate) {
-    val assetsDir = result.latestAppDirectory
-}
+// Sync and check for updates (with callback)
+manager.sync(object : SyncCallback {
+    override fun onComplete(result: SyncResult) {
+        if (result.didUpdate) {
+            val assetsDir = manager.latestAppDirectory
+        }
+    }
+
+    override fun onError(error: LiveUpdateError.SyncFailed) {
+        // Handle error
+    }
+})
 ```
 
 ## Publishing

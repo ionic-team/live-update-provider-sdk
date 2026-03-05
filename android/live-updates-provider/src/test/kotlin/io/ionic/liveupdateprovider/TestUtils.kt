@@ -1,17 +1,16 @@
-package io.ionic.liveupdatesprovider
+package io.ionic.liveupdateprovider
 
 import android.content.Context
-import io.ionic.liveupdatesprovider.models.ProviderConfig
 
 /**
  * Test provider implementation for use in unit tests.
  * This simple provider doesn't create actual managers and is used only for testing registry operations.
  */
-class TestProviderImpl(override var id: String) : LiveUpdatesProvider {
+class TestProviderImpl(override var id: String) : LiveUpdateProvider {
     override fun createManager(
         context: Context,
-        config: ProviderConfig
-    ): LiveUpdatesManager {
+        config: Map<String, Any>?
+    ): LiveUpdateManager {
         throw NotImplementedError("Test provider does not create managers")
     }
 }
