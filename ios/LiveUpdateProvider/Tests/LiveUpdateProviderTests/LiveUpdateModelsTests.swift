@@ -1,7 +1,7 @@
 import XCTest
-@testable import LiveUpdatesProvider
+@testable import LiveUpdateProvider
 
-final class LiveUpdatesModelsTests: XCTestCase {
+final class LiveUpdateModelsTests: XCTestCase {
     
     func testProviderConfigTypeCasting() {
         let dictionary: [String: Sendable] = [

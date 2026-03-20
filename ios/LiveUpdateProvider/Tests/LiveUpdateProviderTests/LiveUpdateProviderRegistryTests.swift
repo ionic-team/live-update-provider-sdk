@@ -1,8 +1,8 @@
 import XCTest
-@testable import LiveUpdatesProvider
+@testable import LiveUpdateProvider
 
 // MARK: - Mocks
-final class MockProvider: LiveUpdatesProvider {
+final class MockProvider: LiveUpdateProvider {
     let id: String
     init(id: String) { self.id = id }
     func createManager(config: ProviderConfig) throws -> any LiveUpdateManaging {
@@ -18,10 +18,10 @@ struct MockManager: LiveUpdateManaging {
 }
 
 // MARK: - Tests
-final class LiveUpdatesRegistryTests: XCTestCase {
+final class LiveUpdateRegistryTests: XCTestCase {
     
     func testRegistryResolveAndRequire() throws {
-        let registry = LiveUpdatesProviderRegistry.shared
+        let registry = LiveUpdateProviderRegistry.shared
         let providerId = "test-provider-\(UUID().uuidString)"
         let provider = MockProvider(id: providerId)
         
@@ -34,7 +34,7 @@ final class LiveUpdatesRegistryTests: XCTestCase {
     }
     
     func testRegistryConcurrency() async {
-        let registry = LiveUpdatesProviderRegistry.shared
+        let registry = LiveUpdateProviderRegistry.shared
         
         await withTaskGroup(of: Void.self) { group in
             for i in 0..<100 {
