@@ -9,14 +9,14 @@ public actor LiveUpdateProviderRegistry {
     
     public func register(_ provider: any LiveUpdateProviding) {
         guard !provider.id.isEmpty else {
-            let message = "LiveUpdateRegistry: Cannot register a provider with an empty ID."
+            let message = "LiveUpdateProviderRegistry: Cannot register a provider with an empty ID."
             print(message)
             assertionFailure(message)
             return
         }
         
         if providers[provider.id] != nil {
-            let message = "LiveUpdateRegistry: Provider with ID '\(provider.id)' is already registered. Ignoring subsequent registration."
+            let message = "LiveUpdateProviderRegistry: Provider with ID '\(provider.id)' is already registered. Ignoring subsequent registration."
             print(message)
             assertionFailure(message)
             return
