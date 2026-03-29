@@ -5,7 +5,7 @@ import PackageDescription
 let package = Package(
     name: "LiveUpdateProvider",
     platforms: [
-        .iOS(.v13)
+        .iOS(.v15)
     ],
     products: [
         .library(
@@ -16,12 +16,12 @@ let package = Package(
     targets: [
         .target(
             name: "LiveUpdateProvider",
-            path: "ios/LiveUpdateProvider/Sources/LiveUpdateProvider"
+            path: "ios/Sources/LiveUpdateProvider"
         ),
         .testTarget(
             name: "LiveUpdateProviderTests",
             dependencies: ["LiveUpdateProvider"],
-            path: "ios/LiveUpdateProvider/Tests/LiveUpdateProviderTests"
+            path: "ios/Tests/LiveUpdateProviderTests"
         ),
     ]
 )
