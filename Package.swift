@@ -3,25 +3,25 @@
 import PackageDescription
 
 let package = Package(
-    name: "LiveUpdatesProvider",
+    name: "LiveUpdateProvider",
     platforms: [
-        .iOS(.v13)
+        .iOS(.v15)
     ],
     products: [
         .library(
-            name: "LiveUpdatesProvider",
-            targets: ["LiveUpdatesProvider"]
+            name: "LiveUpdateProvider",
+            targets: ["LiveUpdateProvider"]
         ),
     ],
     targets: [
         .target(
-            name: "LiveUpdatesProvider",
-            path: "ios/LiveUpdatesProvider/Sources/LiveUpdatesProvider"
+            name: "LiveUpdateProvider",
+            path: "ios/Sources/LiveUpdateProvider"
         ),
         .testTarget(
-            name: "LiveUpdatesProviderTests",
-            dependencies: ["LiveUpdatesProvider"],
-            path: "ios/LiveUpdatesProvider/Tests/LiveUpdatesProviderTests"
+            name: "LiveUpdateProviderTests",
+            dependencies: ["LiveUpdateProvider"],
+            path: "ios/Tests/LiveUpdateProviderTests"
         ),
     ]
 )
