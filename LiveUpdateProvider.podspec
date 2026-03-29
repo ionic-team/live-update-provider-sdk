@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'LiveUpdateProvider'
-  s.version          = '0.1.0'
+  s.version          = '0.1.0-alpha.1'
   s.summary          = 'Interface and models for Live Update Providers.'
   s.homepage         = 'https://github.com/ionic-team/live-update-provider-sdk'
   s.license          = { :type => 'MIT', :file => 'License' }
