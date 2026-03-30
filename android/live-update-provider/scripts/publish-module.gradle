@@ -44,6 +44,14 @@ afterEvaluate {
                     name = 'liveupdateprovider'
                     description = 'Ionic Live Update Provider Native Library'
                     url = 'https://github.com/ionic-team/live-update-provider-sdk'
+
+                    licenses {
+                        license {
+                            name = 'MIT License'
+                            url = 'https://github.com/ionic-team/live-update-provider-sdk/blob/main/License'
+                        }
+                    }
+
                     developers {
                         developer {
                             name = 'Ionic'
