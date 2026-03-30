@@ -80,8 +80,14 @@ signing {
     val signingKey = findProperty("signingKey") as String?
     val signingPassword = findProperty("signingPassword") as String?
 
-    useInMemoryPgpKeys(signingKey, signingPassword)
-    sign(publishing.publications)
+    setRequired({
+        gradle.taskGraph.hasTask("publish")
+    })
+
+    if (signingKey != null && signingPassword != null) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign(publishing.publications)
+    }
 }
 
 dependencies {

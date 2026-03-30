@@ -46,12 +46,15 @@ val config = mapOf("appId" to "my-app", "channel" to "your-channel")
 val manager = provider.createManager(context, config)
 
 // Sync (with callback)
-manager.sync(object : SyncCallback {
-    override fun onComplete(result: SyncResult) {
-        val assetsDir = manager.latestAppDirectory
+manager.sync(object : ProviderSyncCallback {
+    override fun onSuccess(result: ProviderSyncResult) {
+        // Check if update was applied
+        if (result is FederatedCapacitorSyncResult && result.didUpdate) {
+            val assetsDir = manager.latestAppDirectory
+        }
     }
 
-    override fun onError(error: LiveUpdateError.SyncFailed) {
+    override fun onFailure(error: LiveUpdateError.SyncFailed) {
         // Handle error
     }
 })

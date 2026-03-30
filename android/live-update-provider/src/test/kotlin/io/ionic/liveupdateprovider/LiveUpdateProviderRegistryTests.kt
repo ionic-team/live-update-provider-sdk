@@ -116,7 +116,7 @@ class LiveUpdateProviderRegistryTests {
         override fun createManager(
             context: Context,
             config: Map<String, Any>?
-        ): LiveUpdateManager {
+        ): LiveUpdateProviderManager {
             throw NotImplementedError("Not needed for registry tests")
         }
     }

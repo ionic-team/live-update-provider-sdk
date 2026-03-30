@@ -9,15 +9,12 @@ interface LiveUpdateProviderManager {
 
 interface ProviderSyncCallback {
     fun onSuccess(result: ProviderSyncResult)
-    fun onFailure(error: ProviderSyncError)
+    fun onFailure(error: LiveUpdateError.SyncFailed)
 }
 
 interface ProviderSyncResult
 
 data class FederatedCapacitorSyncResult(
+    val didUpdate: Boolean,
     val metadata: Map<String, Any>
 ): ProviderSyncResult
-
-data class ProviderSyncError(
-    val message: String
-)
