@@ -1,20 +1,19 @@
 {
-    "name": "ionic-live-updates-provider-android",
-    "version": "0.5.7",
-    "description": "Ionic Live Updates Provider",
-    "homepage": "https://ionic.io/portals",
-    "author": "Ionic Team <hi@ionic.io> (https://ionic.io)",
-    "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/ionic-team/live-updates-provider-sdk.git"
-    },
-    "bugs": {
-        "url": "https://github.com/ionic-team/live-updates-provider-sdk/issues"
-    },
-    "files": [],
-    "scripts": {
-        "verify": "./gradlew :live-updates-provider:clean :live-updates-provider:build :live-updates-provider:test"
-    },
-    "private": true
+  "name": "ionic-live-update-provider-android",
+  "version": "0.1.0-alpha.1",
+  "description": "Ionic Live Update Provider",
+  "homepage": "https://ionic.io/portals",
+  "author": "Ionic Team <hi@ionic.io> (https://ionic.io)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ionic-team/live-update-provider-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ionic-team/live-update-provider-sdk/issues"
+  },
+  "files": [],
+  "scripts": {
+    "verify": "./gradlew :live-update-provider:clean :live-update-provider:build :live-update-provider:test"
+  },
+  "private": true
 }

@@ -1,4 +1,4 @@
-name: Publish to Maven Central
+name: Publish Native Android Library
 
 on:
   release:
@@ -9,30 +9,47 @@ jobs:
   publish-android:
     runs-on: ubuntu-latest
     permissions: write-all
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup Java
+      - uses: actions/checkout@v2
+      - name: set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '17'
           distribution: 'temurin'
-
+          
       - name: Grant execute permission for gradlew
         run: chmod +x ./android/gradlew
 
-      - name: Grant execute permission for publish script
+      - name: Grant execute permission for publishing script
         run: chmod +x ./scripts/publish-android.sh
+
+      - name: Make local props
+        run: |
+          cat << EOF > "./android/local.properties"
+          centralUsername=${{ secrets.ANDROID_CENTRAL_USERNAME }}
+          centralPassword=${{ secrets.ANDROID_CENTRAL_PASSWORD }}
+          sonatypeStagingProfileId=${{ secrets.ANDROID_SONATYPE_STAGING_PROFILE_ID }}
+          signing.keyId=${{ secrets.ANDROID_SIGNING_KEY_ID }}
+          signing.password=${{ secrets.ANDROID_SIGNING_PASSWORD }}
+          signing.key=${{ secrets.ANDROID_SIGNING_KEY }}
+          EOF
+          echo "local.properties file has been created successfully."
+
+      - name: Assemble release and add artifact to GH Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ github.event_name == 'release' }}
+        run: |
+          cd android && ./gradlew assembleRelease
+          gh release upload ${{ github.event.release.tag_name }} ./android/live-update-provider/build/outputs/aar/*.aar
 
       - name: Run publish script
         working-directory: ./scripts
         env:
-          ANDROID_OSSRH_USERNAME: ${{ secrets.ANDROID_OSSRH_USERNAME }}
-          ANDROID_OSSRH_PASSWORD: ${{ secrets.ANDROID_OSSRH_PASSWORD }}
+          ANDROID_CENTRAL_USERNAME: ${{ secrets.ANDROID_CENTRAL_USERNAME }}
+          ANDROID_CENTRAL_PASSWORD: ${{ secrets.ANDROID_CENTRAL_PASSWORD }}
           ANDROID_SIGNING_KEY_ID: ${{ secrets.ANDROID_SIGNING_KEY_ID }}
           ANDROID_SIGNING_PASSWORD: ${{ secrets.ANDROID_SIGNING_PASSWORD }}
-          ANDROID_SIGNING_KEY: ${{ secrets.ANDROID_SIGNING_SECRET_KEY }}
+          ANDROID_SIGNING_KEY: ${{ secrets.ANDROID_SIGNING_KEY }}
           ANDROID_SONATYPE_STAGING_PROFILE_ID: ${{ secrets.ANDROID_SONATYPE_STAGING_PROFILE_ID }}
         run: ./publish-android.sh

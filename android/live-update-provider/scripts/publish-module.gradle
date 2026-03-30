@@ -1,7 +1,7 @@
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
-def LIB_VERSION = System.getenv('LIVEUPDATESPROVIDER_VERSION')
+def LIB_VERSION = System.getenv('LIVE_UPDATE_PROVIDER_SDK_VERSION')
 
 task androidSourcesJar(type: Jar) {
     archiveClassifier.set('sources')
@@ -27,7 +27,7 @@ afterEvaluate {
             release(MavenPublication) {
                 // Coordinates
                 groupId 'io.ionic'
-                artifactId 'live-updates-provider'
+                artifactId 'liveupdateprovider'
                 version LIB_VERSION
 
                 // Two artifacts, the `aar` (or `jar`) and the sources
@@ -37,20 +37,13 @@ afterEvaluate {
                     artifact("$buildDir/libs/${project.getName()}-${version}.jar")
                 }
 
-                // TODO: Check if this is required, it's done in the ionic-portals-android but not in the lu-sdk
                 artifact androidSourcesJar
 
                 // POM Data
                 pom {
-                    name = 'live-updates-provider'
-                    description = 'Ionic Live Updates Provider Native Library'
-                    url = 'https://github.com/ionic-team/live-updates-provider-sdk'
-                    licenses {
-                        license {
-                            name = 'Ionic Live Updates Provider License'
-                            url = 'https://github.com/ionic-team/live-updates-provider-sdk/blob/main/LICENSE.md'
-                        }
-                    }
+                    name = 'liveupdateprovider'
+                    description = 'Ionic Live Update Provider Native Library'
+                    url = 'https://github.com/ionic-team/live-update-provider-sdk'
                     developers {
                         developer {
                             name = 'Ionic'
@@ -60,9 +53,9 @@ afterEvaluate {
 
                     // Version Control Info
                     scm {
-                        connection = 'scm:git:github.com:ionic-team/live-updates-provider-sdk.git'
-                        developerConnection = 'scm:git:ssh://github.com:ionic-team/live-updates-provider-sdk.git'
-                        url = 'https://github.com/ionic-team/live-updates-provider-sdk/tree/main'
+                        connection = 'scm:git:github.com:ionic-team/live-update-provider-sdk.git'
+                        developerConnection = 'scm:git:ssh://github.com:ionic-team/live-update-provider-sdk.git'
+                        url = 'https://github.com/ionic-team/live-update-provider-sdk/tree/main'
                     }
                 }
             }

@@ -1,21 +1,20 @@
 # Live Updates Provider SDK
 
-This repository contains the Live Updates Provider API for Android and iOS, which defines an abstraction layer for live update implementations.
+This repository contains the Live Updates Provider API for Android, which defines an abstraction layer for live update implementations.
 
 ## Project Structure
 
 ```
-live-updates-provider-sdk/
+live-update-provider-sdk/
 ├── android/                  # Android implementation
-│   ├── live-updates-provider/
+│   ├── live-update-provider/
 │   └── README.md
-└── ios/                      # iOS implementation (coming soon)
+└── scripts/                  # Publishing scripts
 ```
 
-## Platform Documentation
+## Documentation
 
 - [Android Implementation](android/README.md)
-- iOS Implementation (coming soon)
 
 ## Overview
 
@@ -31,4 +30,4 @@ Each platform implementation provides a default Ionic provider that integrates w
 
 ## License
 
-Copyright © 2024 Ionic
+Copyright © 2026 Ionic
