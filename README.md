@@ -1,33 +1,38 @@
 # Live Updates Provider SDK
 
-This repository contains the Live Updates Provider API for Android, which defines an abstraction layer for live update implementations.
+## Getting Started
 
-## Project Structure
+This SDK defines contracts. To use it, create your own provider package that implements the protocols/interfaces in the iOS and Android SDKs.
 
-```
-live-update-provider-sdk/
-├── android/                  # Android implementation
-│   ├── live-update-provider/
-│   └── README.md
-└── scripts/                  # Publishing scripts
-```
+### Core implementation (all providers)
 
-## Documentation
+- Implement manager sync logic that fetches and activates new web assets.
+- Keep `latestAppDirectory` accurate:
+  - correct when a manager is created
+  - updated before `sync` returns when new assets are applied
+- Clean up unused disk assets.
+
+### Portals support requirements
+
+To support Portals, a provider must implement a manager interface.
+
+- iOS: implement `LiveUpdateManaging`
+- Android: implement `LiveUpdateProviderManager`
+
+### Federated Capacitor support requirements
+
+To support Federated Capacitor, a provider must:
+
+- implement provider + manager contracts
+  - iOS: `LiveUpdateProviding` + `LiveUpdateManaging`
+  - Android: `LiveUpdateProvider` + `LiveUpdateProviderManager`
+- ensure manager state is accurate on creation (`latestAppDirectory` points to the latest active bundle)
+- package itself as a Capacitor plugin
+- register its provider in `LiveUpdateProviderRegistry` on plugin load
+
+If sync is used for Federated Capacitor and you want to return metadata to the JS layer, return `FederatedCapacitorSyncResult` with optional metadata.
+
+## Additional Documentation
 
 - [Android Implementation](android/README.md)
-
-## Overview
-
-The Live Updates Provider API defines a standard interface for live update implementations across platforms:
-
-- **LiveUpdatesProvider**: Creates manager instances for configured apps
-- **LiveUpdatesManager**: Handles sync operations for a single app
-- **LiveUpdatesRegistry**: Thread-safe registry for provider registration and lookup
-- **ProviderConfig**: Opaque configuration passed to providers
-- **SyncResult**: Result of sync operations
-
-Each platform implementation provides a default Ionic provider that integrates with Ionic Appflow.
-
-## License
-
-Copyright © 2026 Ionic
+- iOS Implementation: see `ios/Sources/LiveUpdateProvider`
