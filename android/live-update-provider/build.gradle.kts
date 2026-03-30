@@ -1,8 +1,13 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.library")
-    kotlin("android")
     id("maven-publish")
-    id("signing")
+    kotlin("android")
+}
+
+if (System.getenv("LIVE_UPDATE_PROVIDER_PUBLISH") == "true") {
+    apply(from = file("./scripts/publish-module.gradle"))
 }
 
 android {
@@ -11,11 +16,18 @@ android {
 
     defaultConfig {
         minSdk = 24
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    sourceSets {
+        getByName("main").java.srcDirs("src/main/kotlin")
+        getByName("test").java.srcDirs("src/test/kotlin")
     }
 
     buildTypes {
-        release {
+        getByName("release") {
             isMinifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 
@@ -29,64 +41,13 @@ android {
     }
 
     publishing {
-        singleVariant("release") {
-            withSourcesJar()
-        }
+        singleVariant("release")
     }
 }
 
-group = "io.ionic"
-version = (findProperty("releaseVersion") as String?) ?: "LOCAL-SNAPSHOT"
-
-afterEvaluate {
-    publishing {
-        publications {
-            create<MavenPublication>("release") {
-                from(components["release"])
-
-                artifactId = "live-update-provider"
-
-                pom {
-                    name.set("live-update-provider")
-                    description.set("Ionic Live Updates Provider Native Library")
-                    url.set("https://github.com/ionic-team/live-update-provider-sdk")
-
-                    licenses {
-                        license {
-                            name.set("MIT")
-                            url.set("https://github.com/ionic-team/live-update-provider-sdk/blob/main/License")
-                        }
-                    }
-
-                    developers {
-                        developer {
-                            name.set("Ionic")
-                            email.set("hi@ionic.io")
-                        }
-                    }
-
-                    scm {
-                        connection.set("scm:git:github.com:ionic-team/live-update-provider-sdk.git")
-                        developerConnection.set("scm:git:ssh://github.com:ionic-team/live-update-provider-sdk.git")
-                        url.set("https://github.com/ionic-team/live-update-provider-sdk/tree/main")
-                    }
-                }
-            }
-        }
-    }
-}
-
-signing {
-    val signingKey = findProperty("signingKey") as String?
-    val signingPassword = findProperty("signingPassword") as String?
-
-    setRequired({
-        gradle.taskGraph.hasTask("publish")
-    })
-
-    if (signingKey != null && signingPassword != null) {
-        useInMemoryPgpKeys(signingKey, signingPassword)
-        sign(publishing.publications)
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
     }
 }
 

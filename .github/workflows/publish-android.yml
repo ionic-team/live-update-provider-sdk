@@ -1,4 +1,4 @@
-name: Publish Android
+name: Publish Native Android Library
 
 on:
   release:
@@ -6,44 +6,50 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish:
+  publish-android:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
+    permissions: write-all
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Java
+      - uses: actions/checkout@v2
+      - name: set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
           java-version: '17'
-          cache: gradle
+          distribution: 'temurin'
+          
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./android/gradlew
 
-      - name: Resolve release version
-        shell: bash
+      - name: Grant execute permission for publishing script
+        run: chmod +x ./scripts/publish-android.sh
+
+      - name: Make local props
         run: |
-          if [[ "${{ github.event_name }}" == "release" ]]; then
-            VERSION="${{ github.event.release.tag_name }}"
-          else
-            VERSION="${{ vars.ANDROID_RELEASE_VERSION }}"
-          fi
-          VERSION="${VERSION#v}"
-          if [[ -z "$VERSION" ]]; then
-            echo "Release version is empty." >&2
-            exit 1
-          fi
-          echo "ANDROID_RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
+          cat << EOF > "./android/local.properties"
+          centralUsername=${{ secrets.ANDROID_CENTRAL_USERNAME }}
+          centralPassword=${{ secrets.ANDROID_CENTRAL_PASSWORD }}
+          sonatypeStagingProfileId=${{ secrets.ANDROID_SONATYPE_STAGING_PROFILE_ID }}
+          signing.keyId=${{ secrets.ANDROID_SIGNING_KEY_ID }}
+          signing.password=${{ secrets.ANDROID_SIGNING_PASSWORD }}
+          signing.key=${{ secrets.ANDROID_SIGNING_KEY }}
+          EOF
+          echo "local.properties file has been created successfully."
 
-      - name: Publish to Maven Central
-        working-directory: ./android
+      - name: Assemble release and add artifact to GH Release
         env:
-          ORG_GRADLE_PROJECT_releaseVersion: ${{ env.ANDROID_RELEASE_VERSION }}
-          ORG_GRADLE_PROJECT_ossrhUsername: ${{ secrets.ANDROID_OSSRH_USERNAME }}
-          ORG_GRADLE_PROJECT_ossrhPassword: ${{ secrets.ANDROID_OSSRH_PASSWORD }}
-          ORG_GRADLE_PROJECT_sonatypeStagingProfileId: ${{ secrets.ANDROID_SONATYPE_STAGING_PROFILE_ID }}
-          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.ANDROID_SIGNING_SECRET_KEY }}
-          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.ANDROID_SIGNING_PASSWORD }}
-        run: ./gradlew :live-update-provider:publishReleasePublicationToSonatypeRepository closeAndReleaseSonatypeStagingRepository
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ github.event_name == 'release' }}
+        run: |
+          cd android && ./gradlew assembleRelease
+          gh release upload ${{ github.event.release.tag_name }} ./android/live-update-provider/build/outputs/aar/*.aar
+
+      - name: Run publish script
+        working-directory: ./scripts
+        env:
+          ANDROID_CENTRAL_USERNAME: ${{ secrets.ANDROID_CENTRAL_USERNAME }}
+          ANDROID_CENTRAL_PASSWORD: ${{ secrets.ANDROID_CENTRAL_PASSWORD }}
+          ANDROID_SIGNING_KEY_ID: ${{ secrets.ANDROID_SIGNING_KEY_ID }}
+          ANDROID_SIGNING_PASSWORD: ${{ secrets.ANDROID_SIGNING_PASSWORD }}
+          ANDROID_SIGNING_KEY: ${{ secrets.ANDROID_SIGNING_KEY }}
+          ANDROID_SONATYPE_STAGING_PROFILE_ID: ${{ secrets.ANDROID_SONATYPE_STAGING_PROFILE_ID }}
+        run: ./publish-android.sh
