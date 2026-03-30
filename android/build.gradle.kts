@@ -1,33 +1,18 @@
-buildscript {
-    val kotlinVersion = "2.1.0"
-    extra.apply {
-        set("kotlinVersion", kotlinVersion)
-    }
+plugins {
+    id("com.android.library") version "8.13.0" apply false
+    kotlin("android") version "2.1.0" apply false
+    id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
+}
 
+nexusPublishing {
     repositories {
-        google()
-        mavenCentral()
-    }
-    
-    dependencies {
-        if (System.getenv("LIVEUPDATESPROVIDER_PUBLISH") == "true") {
-            classpath("io.github.gradle-nexus:publish-plugin:2.0.0")
+        sonatype {
+            username.set(providers.gradleProperty("ossrhUsername"))
+            password.set(providers.gradleProperty("ossrhPassword"))
+            stagingProfileId.set(providers.gradleProperty("sonatypeStagingProfileId"))
+            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
         }
-
-        classpath("com.android.tools.build:gradle:8.13.0")
-        classpath(kotlin("gradle-plugin", version = kotlinVersion))
-    }
-}
-
-if (System.getenv("LIVEUPDATESPROVIDER_PUBLISH") == "true") {
-    apply(plugin = "io.github.gradle-nexus.publish-plugin")
-    apply(from = file("./live-updates-provider/scripts/publish-root.gradle"))
-}
-
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
     }
 }
 

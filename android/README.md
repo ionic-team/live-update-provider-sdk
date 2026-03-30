@@ -6,32 +6,31 @@ Android implementation of the Live Updates Provider API, which defines an abstra
 
 ```bash
 # Build the library
-./gradlew :live-updates-provider:build
+./gradlew :live-update-provider:build
 
 # Run tests
-./gradlew :live-updates-provider:test
+./gradlew :live-update-provider:test
 
 # Generate AAR
-./gradlew :live-updates-provider:assembleRelease
+./gradlew :live-update-provider:assembleRelease
 ```
 
 The output AAR will be located at:
 ```
-android/live-updates-provider/build/outputs/aar/live-updates-provider-release.aar
+android/live-update-provider/build/outputs/aar/live-update-provider-release.aar
 ```
 
 ## Requirements
 
 - Android SDK 21+ (minSdk)
-- Kotlin 1.9.25
+- Kotlin 2.1.0
 - Java 17
-- Gradle 8.9+
+- Gradle 8.14.3
 
 ## Dependencies
 
 The provider API module depends on:
 - AndroidX Core KTX
-- Kotlin Coroutines for Android
 
 ## Usage
 
@@ -46,12 +45,10 @@ val provider = LiveUpdateProviderRegistry.require("provider-id") // LiveUpdatePr
 val config = mapOf("appId" to "my-app", "channel" to "your-channel")
 val manager = provider.createManager(context, config)
 
-// Sync and check for updates (with callback)
+// Sync (with callback)
 manager.sync(object : SyncCallback {
     override fun onComplete(result: SyncResult) {
-        if (result.didUpdate) {
-            val assetsDir = manager.latestAppDirectory
-        }
+        val assetsDir = manager.latestAppDirectory
     }
 
     override fun onError(error: LiveUpdateError.SyncFailed) {
@@ -72,18 +69,11 @@ Publish to your local Maven repository for testing:
 
 ### Maven Central
 
-Production releases are automated via CI. The version is managed in `android/package.json`.
+Production releases are automated via CI using `.github/workflows/publish-android.yml`.
 
-1. Update the version in `android/package.json`
-2. Create a GitHub release
-3. The `publish-android.yml` workflow automatically runs `scripts/publish-android.sh`
-4. The script publishes to Maven Central if the version is not already published
-
-To manually publish, run the script from the repository root:
-
-```bash
-./scripts/publish-android.sh
-```
+1. Create a GitHub release tag (for example, `v0.1.0`)
+2. The workflow resolves the release version from the tag
+3. The workflow publishes the `:live-update-provider` artifact to Maven Central
 
 ## License
 

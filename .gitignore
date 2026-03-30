@@ -21,9 +21,8 @@ build/
 
 # Gradle files
 .gradle/
-**/. gradle/
+**/.gradle/
 local.properties
-gradle-wrapper.jar
 
 # Gradle build cache
 .gradle-cache/
