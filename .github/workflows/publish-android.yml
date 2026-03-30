@@ -41,7 +41,7 @@ jobs:
         if: ${{ github.event_name == 'release' }}
         run: |
           cd android && ./gradlew assembleRelease
-          gh release upload ${{ github.event.release.tag_name }} ./android/live-update-provider/build/outputs/aar/*.aar
+          gh release upload ${{ github.event.release.tag_name }} ./live-update-provider/build/outputs/aar/*.aar
 
       - name: Run publish script
         working-directory: ./scripts
