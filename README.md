@@ -36,3 +36,10 @@ If sync is used for Federated Capacitor and you want to return metadata to the J
 
 - [Android Implementation](android/README.md)
 - iOS Implementation: see `ios/Sources/LiveUpdateProvider`
+
+## Service Architecture
+
+As Ionic Appflow is being sunset, teams may want to build and operate their own Live Updates service.
+If you are planning that path, this document provides guidance on architecture, responsibilities, and integration expectations.
+
+Live Updates Service Architecture Overview: [Ionic Live Updates Architecture](ionic-live-updates-architecture-customer.md)
