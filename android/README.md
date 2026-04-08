@@ -58,21 +58,26 @@ Providers register themselves with the `LiveUpdateProviderRegistry`:
 // Register a provider implementation
 LiveUpdateProviderRegistry.register(myProviderInstance)
 
-// Resolve and create a manager
-val provider = LiveUpdateProviderRegistry.require("provider-id") // LiveUpdateProviderRegistry.resolve("provider-id")
+// Option A: require a provider (throws if missing)
+val provider = LiveUpdateProviderRegistry.require("provider-id")
 val config = mapOf("appId" to "my-app", "channel" to "your-channel")
-val manager = provider.createManager(context, config)
+val manager = provider.createManager(context.applicationContext, config)
+
+// Option B: resolve a provider (null if missing)
+val maybeProvider = LiveUpdateProviderRegistry.resolve("provider-id")
 
 // Sync (with callback)
-manager.sync(object : ProviderSyncCallback {
-    override fun onSuccess(result: ProviderSyncResult) {
-        // Check if update was applied
-        if (result is FederatedCapacitorSyncResult && result.didUpdate) {
-            val assetsDir = manager.latestAppDirectory
+manager.sync(object : LiveUpdateProviderSyncCallback {
+    override fun onSuccess(result: LiveUpdateProviderSyncResult) {
+        val assetsDir = manager.latestAppDirectory
+
+        // Federated Capacitor metadata (optional)
+        if (result is FederatedCapacitorSyncResult) {
+            val metadata = result.metadata
         }
     }
 
-    override fun onFailure(error: LiveUpdateError.SyncFailed) {
+    override fun onFailure(error: LiveUpdateProviderError.SyncFailed) {
         // Handle error
     }
 })
@@ -111,7 +116,8 @@ Configure the following GitHub secrets in your repository:
    - Upload the AAR artifact to the GitHub release
    - Publish the library to Maven Central
 
-The version is read from `android/package.json` and the publish script checks if the version already exists on Maven Central before publishing.
+The version is read from `android/package.json`. The publish script checks Maven Central
+for an existing version and skips publication if it already exists.
 
 ## License
 

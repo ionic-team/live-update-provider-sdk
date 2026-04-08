@@ -7,7 +7,7 @@ import org.junit.Test
 class LiveUpdateErrorTests {
     @Test
     fun `provider not registered includes provider id`() {
-        val error = LiveUpdateError.ProviderNotRegistered("test-provider")
+        val error = LiveUpdateProviderError.ProviderNotRegistered("test-provider")
 
         assertEquals("test-provider", error.providerId)
         assertEquals("Provider with ID 'test-provider' not found", error.message)
@@ -16,7 +16,7 @@ class LiveUpdateErrorTests {
     @Test
     fun `invalid configuration carries details and cause`() {
         val cause = IllegalArgumentException("bad config")
-        val error = LiveUpdateError.InvalidConfiguration("missing appId", cause)
+        val error = LiveUpdateProviderError.InvalidConfiguration("missing appId", cause)
 
         assertEquals("missing appId", error.details)
         assertSame(cause, error.cause)
@@ -26,7 +26,7 @@ class LiveUpdateErrorTests {
     @Test
     fun `sync failed carries details and cause`() {
         val cause = RuntimeException("network down")
-        val error = LiveUpdateError.SyncFailed("request failed", cause)
+        val error = LiveUpdateProviderError.SyncFailed("request failed", cause)
 
         assertEquals("request failed", error.details)
         assertSame(cause, error.cause)

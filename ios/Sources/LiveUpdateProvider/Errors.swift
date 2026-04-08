@@ -1,12 +1,21 @@
 import Foundation
 
-public enum LiveUpdateError: Error, Sendable {
+/// Errors used by the Live Update Provider SDK.
+///
+/// `providerNotRegistered` is emitted by the SDK runtime.
+/// `invalidConfiguration` and `syncFailed` are intended for provider implementations.
+public enum LiveUpdateProviderError: Error {
+    /// No provider is registered for the requested provider identifier.
     case providerNotRegistered(String)
+
+    /// Provider configuration is missing required values or contains invalid values.
     case invalidConfiguration(String, underlyingError: Error?)
+
+    /// A sync operation failed before completion.
     case syncFailed(String, underlyingError: Error?)
 }
 
-extension LiveUpdateError: LocalizedError {
+extension LiveUpdateProviderError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .providerNotRegistered(let id):
