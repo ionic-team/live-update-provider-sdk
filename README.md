@@ -1,45 +1,78 @@
 # Live Updates Provider SDK
 
-## Getting Started
+Provider-facing SDK contracts for integrating custom Live Updates services with Ionic Portals and Federated Capacitor.
 
-This SDK defines contracts. To use it, create your own provider package that implements the protocols/interfaces in the iOS and Android SDKs.
+## Why This Exists
 
-### Core implementation (all providers)
+Ionic Appflow is being sunset, which impacts customers using Ionic Live Updates to deliver updated web assets to mobile apps.
 
-- Implement manager sync logic that fetches and activates new web assets.
-- Keep `latestAppDirectory` accurate:
-  - correct when a manager is created
-  - updated before `sync` returns when new assets are applied
-- Clean up unused disk assets.
+Standard Capacitor apps can already integrate alternative Live Updates services without Ionic infrastructure changes. However, Portals and Federated Capacitor historically depended on Ionic/Appflow-specific behavior.
 
-### Portals support requirements
+This SDK introduces a provider abstraction so Portals and Federated Capacitor can depend on a stable provider contract rather than provider-specific logic.
 
-To support Portals, a provider must implement a manager interface.
+## What You Implement
 
-- iOS: implement `LiveUpdateManaging`
-- Android: implement `LiveUpdateProviderManager`
+All providers implement manager sync behavior that fetches, stores, and activates web assets.
 
-### Federated Capacitor support requirements
+Provider responsibilities:
+- Keep `latestAppDirectory` accurate at all times
+- Ensure `latestAppDirectory` is correct when a manager is created
+- Update `latestAppDirectory` before `sync` returns when new assets are applied
+- Clean up unused disk assets
 
-To support Federated Capacitor, a provider must:
+## Integration Targets
 
-- implement provider + manager contracts
-  - iOS: `LiveUpdateProviding` + `LiveUpdateManaging`
-  - Android: `LiveUpdateProvider` + `LiveUpdateProviderManager`
-- ensure manager state is accurate on creation (`latestAppDirectory` points to the latest active bundle)
-- package itself as a Capacitor plugin
-- register its provider in `LiveUpdateProviderRegistry` on plugin load
+### Portals
 
-If sync is used for Federated Capacitor and you want to return metadata to the JS layer, return `FederatedCapacitorSyncResult` with optional metadata.
+To support Portals, implement manager contracts:
+- iOS: `LiveUpdateManaging`
+- Android: `LiveUpdateProviderManager`
 
-## Additional Documentation
+### Federated Capacitor
 
-- [Android Implementation](android/README.md)
-- iOS Implementation: see `ios/Sources/LiveUpdateProvider`
+To support Federated Capacitor, implement provider + manager contracts:
+- iOS: `LiveUpdateProviding` + `LiveUpdateManaging`
+- Android: `LiveUpdateProvider` + `LiveUpdateProviderManager`
 
-## Service Architecture
+Additional Federated Capacitor requirements:
+- Package your provider as a Capacitor plugin
+- Register your provider in `LiveUpdateProviderRegistry` on plugin load
+- If you want sync metadata returned to JS, return `FederatedCapacitorSyncResult`
 
-As Ionic Appflow is being sunset, teams may want to build and operate their own Live Updates service.
-If you are planning that path, this document provides guidance on architecture, responsibilities, and integration expectations.
+## Platform Packages
 
-Live Updates Service Architecture Overview: [Ionic Live Updates Architecture](ionic-live-updates-architecture-customer.md)
+### iOS
+
+- Source: `ios/Sources/LiveUpdateProvider`
+- Package manager support:
+  - Swift Package Manager (`Package.swift`)
+  - CocoaPods (`LiveUpdateProvider.podspec`)
+
+### Android
+
+- Source: `android/live-update-provider`
+- Maven coordinates: `io.ionic:liveupdateprovider:<version>`
+- Android-specific setup and publishing details: [android/README.md](android/README.md)
+
+## Repository Layout
+
+- `ios/`: iOS SDK source and tests
+- `android/`: Android SDK source, tests, and publishing config
+- `scripts/`: helper scripts (including Android publish helper)
+- `ionic-live-updates-architecture-customer.md`: architecture guidance for teams building a service
+
+## Service Architecture Guidance
+
+As Appflow approaches sunset, teams that plan to build and operate their own Live Updates backend can use the architecture guidance document for implementation planning.
+
+The document covers architecture, data requirements, security considerations, and operational responsibilities.
+
+- Live Updates Service Architecture Overview: `ionic-live-updates-architecture-customer.md`
+
+## Versioning
+
+Pre-1.0 releases may include API refinements as implementation feedback is incorporated.
+
+## License
+
+See [License](License).

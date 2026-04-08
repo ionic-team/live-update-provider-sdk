@@ -2,7 +2,6 @@ package io.ionic.liveupdateprovider
 
 import android.content.Context
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -19,7 +18,7 @@ class LiveUpdateProviderRegistryTests {
         try {
             LiveUpdateProviderRegistry.require(unknownId)
             throw AssertionError("Expected ProviderNotRegistered")
-        } catch (error: LiveUpdateError.ProviderNotRegistered) {
+        } catch (error: LiveUpdateProviderError.ProviderNotRegistered) {
             assertEquals(unknownId, error.providerId)
         }
     }
@@ -36,40 +35,59 @@ class LiveUpdateProviderRegistryTests {
     }
 
     @Test
-    fun `register ignores empty and blank ids`() {
+    fun `register throws for empty and blank ids`() {
         val emptyIdProvider = TestProvider("")
         val blankIdProvider = TestProvider("   ")
 
-        LiveUpdateProviderRegistry.register(emptyIdProvider)
-        LiveUpdateProviderRegistry.register(blankIdProvider)
+        try {
+            LiveUpdateProviderRegistry.register(emptyIdProvider)
+            throw AssertionError("Expected InvalidConfiguration for empty ID")
+        } catch (error: LiveUpdateProviderError.InvalidConfiguration) {
+            assertTrue(error.details.contains("empty ID"))
+        }
 
-        assertNull(LiveUpdateProviderRegistry.resolve(""))
-        assertNull(LiveUpdateProviderRegistry.resolve("   "))
+        try {
+            LiveUpdateProviderRegistry.register(blankIdProvider)
+            throw AssertionError("Expected InvalidConfiguration for blank ID")
+        } catch (error: LiveUpdateProviderError.InvalidConfiguration) {
+            assertTrue(error.details.contains("empty ID"))
+        }
     }
 
     @Test
-    fun `duplicate registration keeps the first provider`() {
+    fun `duplicate registration throws invalid configuration`() {
         val id = uniqueProviderId()
         val first = TestProvider(id)
         val second = TestProvider(id)
 
         LiveUpdateProviderRegistry.register(first)
-        LiveUpdateProviderRegistry.register(second)
-
-        assertSame(first, LiveUpdateProviderRegistry.resolve(id))
+        try {
+            LiveUpdateProviderRegistry.register(second)
+            throw AssertionError("Expected InvalidConfiguration for duplicate ID")
+        } catch (error: LiveUpdateProviderError.InvalidConfiguration) {
+            assertTrue(error.details.contains("already registered"))
+        }
     }
 
     @Test
-    fun `concurrent duplicate registration keeps the first provider`() {
+    fun `concurrent duplicate registration keeps first and throws for others`() {
         val id = uniqueProviderId()
         val first = TestProvider(id)
         LiveUpdateProviderRegistry.register(first)
+        var invalidConfigurationCount = 0
 
         runConcurrent(times = 24) {
-            LiveUpdateProviderRegistry.register(TestProvider(id))
+            try {
+                LiveUpdateProviderRegistry.register(TestProvider(id))
+            } catch (error: LiveUpdateProviderError.InvalidConfiguration) {
+                synchronized(this) {
+                    invalidConfigurationCount += 1
+                }
+            }
         }
 
         assertSame(first, LiveUpdateProviderRegistry.resolve(id))
+        assertTrue("Expected duplicate registrations to throw", invalidConfigurationCount > 0)
     }
 
     @Test
@@ -80,7 +98,13 @@ class LiveUpdateProviderRegistryTests {
         runConcurrent(times = 60) { index ->
             val id = ids[index % ids.size]
             when (index % 2) {
-                0 -> LiveUpdateProviderRegistry.register(TestProvider(id))
+                0 -> {
+                    try {
+                        LiveUpdateProviderRegistry.register(TestProvider(id))
+                    } catch (_: LiveUpdateProviderError.InvalidConfiguration) {
+                        // expected for duplicate IDs in concurrent scenarios
+                    }
+                }
                 else -> LiveUpdateProviderRegistry.resolve(id)
             }
         }
@@ -115,7 +139,7 @@ class LiveUpdateProviderRegistryTests {
     private class TestProvider(override val id: String) : LiveUpdateProvider {
         override fun createManager(
             context: Context,
-            config: Map<String, Any>?
+            config: Map<String, Any>
         ): LiveUpdateProviderManager {
             throw NotImplementedError("Not needed for registry tests")
         }

@@ -1,39 +1,52 @@
 import Foundation
 
-/// Actor-backed registry of `LiveUpdateProviding` implementations.
-public actor LiveUpdateProviderRegistry {
+/// Thread-safe registry of `LiveUpdateProviding` implementations.
+public final class LiveUpdateProviderRegistry {
     public static let shared = LiveUpdateProviderRegistry()
-    
-    private var providers = [String: any LiveUpdateProviding]()
-    
+
+    private var providers: [String: any LiveUpdateProviding] = [:]
+    private let lock = NSLock()
+
     private init() {}
-    
+
     /// Registers a provider by `id`.
-    public func register(_ provider: any LiveUpdateProviding) {
+    ///
+    /// - Throws: `LiveUpdateProviderError.invalidConfiguration` when the provider ID is empty
+    ///   or when another provider is already registered with the same ID.
+    public func register(_ provider: any LiveUpdateProviding) throws {
         guard !provider.id.isEmpty else {
-            assertionFailure("Cannot register a provider with an empty ID.")
-            return
+            throw LiveUpdateProviderError.invalidConfiguration(
+                "Cannot register a provider with an empty ID.",
+                underlyingError: nil
+            )
         }
 
-        if providers[provider.id] != nil {
-            assertionFailure("Provider with ID '\(provider.id)' is already registered.")
-            return
+        lock.lock()
+        defer { lock.unlock() }
+
+        guard providers[provider.id] == nil else {
+            throw LiveUpdateProviderError.invalidConfiguration(
+                "Provider with ID '\(provider.id)' is already registered.",
+                underlyingError: nil
+            )
         }
 
         providers[provider.id] = provider
     }
-    
+
     /// Returns the provider registered for `id`, or `nil` when missing.
     public func resolve(_ id: String) -> (any LiveUpdateProviding)? {
+        lock.lock()
+        defer { lock.unlock() }
         return providers[id]
     }
-    
+
     /// Returns the provider registered for `id`.
     ///
-    /// - Throws: `LiveUpdateError.providerNotRegistered` when missing.
+    /// - Throws: `LiveUpdateProviderError.providerNotRegistered` when missing.
     public func require(_ id: String) throws -> any LiveUpdateProviding {
         guard let provider = resolve(id) else {
-            throw LiveUpdateError.providerNotRegistered(id)
+            throw LiveUpdateProviderError.providerNotRegistered(id)
         }
         return provider
     }
