@@ -17,7 +17,7 @@ All providers implement manager sync behavior that fetches, stores, and activate
 Provider responsibilities:
 - Keep `latestAppDirectory` accurate at all times
 - Ensure `latestAppDirectory` is correct when a manager is created
-- Update `latestAppDirectory` before sync returns when new assets are downloaded and persisted to disk
+- Update `latestAppDirectory` before sync returns when new assets are downloaded
 - Clean up unused disk assets
 
 ## Integration Targets
