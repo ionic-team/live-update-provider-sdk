@@ -9,14 +9,14 @@ Add the dependency to your `build.gradle` or `build.gradle.kts`:
 **Gradle (Groovy)**
 ```groovy
 dependencies {
-    implementation 'io.ionic:liveupdateprovider:0.1.0-alpha.1'
+    implementation 'io.ionic:liveupdateprovider:<version>'
 }
 ```
 
 **Gradle (Kotlin DSL)**
 ```kotlin
 dependencies {
-    implementation("io.ionic:liveupdateprovider:0.1.0-alpha.1")
+    implementation("io.ionic:liveupdateprovider:<version>")
 }
 ```
 
@@ -90,7 +90,7 @@ manager.sync(object : LiveUpdateProviderSyncCallback {
 Publish to your local Maven repository for testing:
 
 ```bash
-export LIVE_UPDATE_PROVIDER_SDK_VERSION=0.1.0-alpha.1
+export LIVE_UPDATE_PROVIDER_SDK_VERSION=<version>
 ./gradlew publishToMavenLocal
 ```
 
@@ -110,7 +110,7 @@ Configure the following GitHub secrets in your repository:
 **Release Process:**
 1. Update the version in `android/package.json`
 2. Commit and merge changes to the main branch
-3. Create a GitHub release with tag matching the version (e.g., `v0.1.0-alpha.1`)
+3. Create a GitHub release with tag matching the version
 4. The GitHub Actions workflow will:
    - Build the Android library
    - Upload the AAR artifact to the GitHub release
