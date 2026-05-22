@@ -59,6 +59,7 @@ Additional Federated Capacitor requirements:
 - `ios/`: iOS SDK source and tests
 - `android/`: Android SDK source, tests, and publishing config
 - `scripts/`: helper scripts (including Android publish helper)
+- `ARCHITECTURE.md`: architecture map for the provider SDK contracts and platform packages
 - `ionic-live-updates-architecture-customer.md`: architecture guidance for teams building a service
 
 ## Service Architecture Guidance

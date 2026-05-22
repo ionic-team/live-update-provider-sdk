@@ -1,0 +1,341 @@
+# Architecture
+
+## Purpose
+
+This repository defines the provider-facing SDK contracts that let Ionic Portals and Federated Capacitor integrate with custom Live Updates services. The SDK does not implement an update backend, artifact downloader, or update storage strategy. Instead, it provides stable iOS and Android interfaces that provider implementations can conform to while the host runtime depends on a common contract.
+
+This document is written for:
+
+- Developers implementing a custom Live Updates provider for Portals or Federated Capacitor.
+- Maintainers evolving the provider contracts, registry behavior, or platform packages.
+- Teams trying to understand the boundary between this SDK, a provider implementation, and a Live Updates backend service.
+
+## Repository Topology
+
+| Path | Responsibility |
+| --- | --- |
+| `ios/Sources/LiveUpdateProvider` | Swift provider contracts, registry, errors, and default Federated Capacitor sync result. |
+| `ios/Tests/LiveUpdateProviderTests` | Swift tests for registry behavior and concurrency safety. |
+| `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider` | Kotlin provider contracts, registry, errors, callback interfaces, and Federated Capacitor sync result. |
+| `android/live-update-provider/src/test/kotlin/io/ionic/liveupdateprovider` | Kotlin tests for registry behavior, error models, and concurrent access. |
+| `Package.swift` | Swift Package Manager definition for the iOS SDK. |
+| `LiveUpdateProvider.podspec` | CocoaPods package definition for the iOS SDK. |
+| `android/live-update-provider/build.gradle.kts` | Android library module build and publishing configuration. |
+| `android/README.md` | Android installation, usage, build, and release guidance. |
+| `docs/assets` | Image assets used by repository documentation. |
+| `ionic-live-updates-architecture-customer.md` | Customer-facing guidance for designing and operating a Live Updates backend service. |
+
+## Runtime Overview
+
+### Architecture pieces
+
+![Live Update Provider architecture pieces](docs/assets/live-update-provider-architecture.png)
+
+The diagram shows how Federated Capacitor and Ionic Portals both depend on the shared provider abstractions exposed by this SDK. Federated Capacitor provider implementations are packaged as Capacitor plugins, implement the provider and manager contracts, and register with the provider registry. Portals integrations can implement the manager contract directly and hand that manager to the Portals SDK.
+
+### How provider selection works
+
+Federated Capacitor integrations register provider implementations at app startup. The host runtime resolves a provider by its string identifier, creates a manager with provider-specific configuration, and then calls the manager to sync assets.
+
+Portals integrations can depend directly on a provider-created manager. In that mode, the registry and provider lookup layer are optional because the host app can create the manager itself.
+
+Key files:
+
+- iOS: `ios/Sources/LiveUpdateProvider/Protocols.swift`
+- iOS: `ios/Sources/LiveUpdateProvider/LiveUpdateProviderRegistry.swift`
+- Android: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/LiveUpdateProvider.kt`
+- Android: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/LiveUpdateProviderManager.kt`
+- Android: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/LiveUpdateProviderRegistry.kt`
+
+### Runtime modes
+
+| Mode | Entry point | What it does |
+| --- | --- | --- |
+| Portals | `LiveUpdateManaging` / `LiveUpdateProviderManager` | Gives a configured Portal a manager that can report its active web asset directory and perform provider-defined sync work. |
+| Federated Capacitor | `LiveUpdateProviding` / `LiveUpdateProvider` plus registry lookup | Lets a provider plugin register itself by ID so the Federated Capacitor runtime can create managers from configuration. |
+
+### Runtime capability boundaries
+
+| Layer | What is defined here | What it does not own |
+| --- | --- | --- |
+| Provider SDK | Interfaces, registry lookup, error types, sync result shape, and optional metadata bridge result. | Network protocol, authentication, artifact download, content verification, file extraction, rollback, cleanup policy, and app reload behavior. |
+| Provider implementation | Manager creation, sync behavior, `latestAppDirectory` maintenance, provider-specific metadata, and storage cleanup. | The shared SDK ABI/API contracts. |
+| Live Updates backend | Channel resolution, artifact metadata, update availability, signed URLs, and deployment policy. | Mobile runtime interface definitions. |
+| Host runtime | Calls into the provider contract and uses the active web asset directory. | Provider-specific service integration details. |
+
+## Contract Architecture
+
+All platforms expose the same conceptual model:
+
+```text
+LiveUpdateProvider / LiveUpdateProviding
+`-- createManager(config)
+    `-- LiveUpdateProviderManager / LiveUpdateManaging
+        |-- latestAppDirectory
+        `-- sync()
+            `-- LiveUpdateProviderSyncResult / SyncResult
+                `-- FederatedCapacitorSyncResult (optional metadata bridge)
+```
+
+### Contract matrix
+
+| Concept | iOS | Android | Responsibility |
+| --- | --- | --- | --- |
+| Provider | `LiveUpdateProviding` | `LiveUpdateProvider` | Identifies a provider and creates managers from provider-specific configuration. |
+| Manager | `LiveUpdateManaging` | `LiveUpdateProviderManager` | Tracks the active app directory and performs sync. |
+| Sync result marker | `SyncResult` | `LiveUpdateProviderSyncResult` | Allows providers to return implementation-specific sync results. |
+| Federated metadata result | `FederatedCapacitorSyncResult` | `FederatedCapacitorSyncResult` | Optionally exposes provider metadata to the web layer. |
+| Default metadata result | `DefaultFederatedCapacitorSyncResult` | `FederatedCapacitorSyncResult` data class | Provides a simple metadata-carrying result shape. |
+| Registry | `LiveUpdateProviderRegistry.shared` | `LiveUpdateProviderRegistry` object | Stores providers by ID for runtime lookup. |
+| Error type | `LiveUpdateProviderError` enum | `LiveUpdateProviderError` sealed interface | Standardizes provider-not-registered, invalid-configuration, and sync-failed errors. |
+
+### Provider responsibilities
+
+Provider implementations own the operational details of Live Updates. A provider manager should:
+
+- Resolve its active web asset directory when it is created.
+- Keep `latestAppDirectory` accurate at all times.
+- Download, validate, store, and activate new web assets during sync.
+- Update `latestAppDirectory` before reporting sync success when new assets are applied.
+- Return provider-defined sync metadata when useful.
+- Clean up unused disk assets according to the provider's retention policy.
+- Surface configuration and sync failures through the SDK error types.
+
+### SDK responsibilities
+
+The SDK is intentionally small. It owns:
+
+- Cross-platform naming and shape of the provider contracts.
+- Registry behavior for Federated Capacitor provider discovery.
+- Common error categories.
+- The optional metadata bridge shape used by Federated Capacitor.
+- Package definitions for Swift Package Manager, CocoaPods, and Android Maven consumers.
+
+The SDK does not prescribe a backend API contract. Teams building a backend service should use `ionic-live-updates-architecture-customer.md` for service architecture guidance.
+
+## Registry Architecture
+
+The registry exists so provider plugins can register themselves during plugin load and host runtimes can resolve providers later by ID.
+
+### Registry behavior
+
+| Operation | Behavior |
+| --- | --- |
+| `register(provider)` | Stores a provider under its `id`. Empty IDs and duplicate IDs fail with `invalidConfiguration` / `InvalidConfiguration`. |
+| `resolve(id)` | Returns the registered provider or `nil` / `null` when missing. |
+| `require(id)` | Returns the registered provider or throws `providerNotRegistered` / `ProviderNotRegistered`. |
+
+### Thread safety
+
+Both platform registries are designed for concurrent access:
+
+- iOS uses an `NSLock` around the provider dictionary.
+- Android uses a `ConcurrentHashMap` and `putIfAbsent` for duplicate-safe registration.
+
+Evidence:
+
+- `ios/Sources/LiveUpdateProvider/LiveUpdateProviderRegistry.swift`
+- `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/LiveUpdateProviderRegistry.kt`
+- `ios/Tests/LiveUpdateProviderTests/LiveUpdateProviderRegistryTests.swift`
+- `android/live-update-provider/src/test/kotlin/io/ionic/liveupdateprovider/LiveUpdateProviderRegistryTests.kt`
+
+## Communication Patterns
+
+The SDK passes only a few stable shapes across the provider boundary:
+
+- Provider ID: a string used for registration and runtime lookup.
+- Provider config: provider-specific key/value data used to create a manager.
+- Active directory: a filesystem path pointing to the latest active web bundle.
+- Sync result: a provider-defined result object, optionally carrying metadata for Federated Capacitor.
+- Error: a standard SDK error category with provider-supplied details and optional underlying cause.
+
+### Operation map
+
+| Operation | Host/runtime responsibility | Provider implementation responsibility | Data crossing the boundary |
+| --- | --- | --- | --- |
+| Register provider | Load provider plugin or application code. | Call registry registration with a stable provider ID. | `provider.id` |
+| Resolve provider | Look up provider by configured ID. | Ensure registration has occurred before lookup. | provider ID |
+| Create manager | Pass provider-specific configuration to the provider. | Validate config and return a configured manager. | config map / dictionary |
+| Read active directory | Use the manager's latest directory to load web assets. | Keep `latestAppDirectory` pointed at the currently active bundle. | file URL / file path |
+| Sync | Trigger sync from the host runtime or application. | Fetch, validate, apply, clean up, then report success or failure. | sync result or sync error |
+| Bridge metadata | Inspect Federated Capacitor result when present. | Return metadata that is safe to expose to the web layer. | metadata map / dictionary |
+
+### Federated Capacitor sequence
+
+```mermaid
+sequenceDiagram
+    participant Plugin as Provider Plugin
+    participant Registry as Provider Registry
+    participant Runtime as Federated Capacitor Runtime
+    participant Provider as LiveUpdateProvider
+    participant Manager as LiveUpdateProviderManager
+    participant Service as Provider Service
+    participant Disk as Device Storage
+
+    Plugin->>Registry: register(provider)
+    Runtime->>Registry: require(providerId)
+    Registry-->>Runtime: provider
+    Runtime->>Provider: createManager(config)
+    Provider-->>Runtime: manager
+    Runtime->>Manager: sync()
+    Manager->>Service: check/download update
+    Service-->>Manager: artifact or no update
+    Manager->>Disk: validate and activate assets
+    Manager-->>Runtime: sync result
+    Runtime->>Manager: latestAppDirectory
+```
+
+### Portals sequence
+
+```mermaid
+sequenceDiagram
+    participant App as Host App
+    participant Provider as Provider Code
+    participant Manager as LiveUpdateManaging
+    participant Portal as Portal Runtime
+
+    App->>Provider: create/configure manager
+    Provider-->>App: manager
+    App->>Portal: attach manager
+    Portal->>Manager: latestAppDirectory
+    Portal->>Manager: sync()
+    Manager-->>Portal: sync result
+```
+
+## Platform Implementations
+
+### Platform behavior matrix
+
+| Platform | Package surface | Manager sync style | Active directory type | Registry implementation |
+| --- | --- | --- | --- | --- |
+| iOS | Swift library distributed through SPM and CocoaPods | `async throws -> any SyncResult` | `URL?` | Singleton with `NSLock` and dictionary storage. |
+| Android | Android library distributed as Maven/AAR artifact | Callback-based `sync(callback)` | `File?` | Kotlin object with `ConcurrentHashMap`. |
+
+### iOS
+
+iOS exposes Swift protocols and a singleton registry.
+
+Key files:
+
+- Contracts: `ios/Sources/LiveUpdateProvider/Protocols.swift`
+- Registry: `ios/Sources/LiveUpdateProvider/LiveUpdateProviderRegistry.swift`
+- Errors: `ios/Sources/LiveUpdateProvider/Errors.swift`
+- SPM package: `Package.swift`
+- CocoaPods package: `LiveUpdateProvider.podspec`
+
+Important iOS behaviors:
+
+- `LiveUpdateManaging.sync()` is asynchronous and throws on failure.
+- `LiveUpdateProviding.createManager(config:)` receives provider-specific configuration as `[String: Any]`.
+- `FederatedCapacitorSyncResult` is a protocol extension point for metadata returned to the web layer.
+- `DefaultFederatedCapacitorSyncResult` provides a simple result implementation with optional metadata.
+- The registry rejects empty and duplicate provider IDs.
+
+### Android
+
+Android exposes Kotlin interfaces and a registry object.
+
+Key files:
+
+- Provider contract: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/LiveUpdateProvider.kt`
+- Manager and sync result contracts: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/LiveUpdateProviderManager.kt`
+- Registry: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/LiveUpdateProviderRegistry.kt`
+- Errors: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/LiveUpdateProviderError.kt`
+- Build configuration: `android/live-update-provider/build.gradle.kts`
+
+Important Android behaviors:
+
+- `LiveUpdateProvider.createManager(context, config)` receives an Android `Context` and provider-specific configuration as `Map<String, Any>`.
+- `LiveUpdateProviderManager.sync(callback)` reports success or failure through `LiveUpdateProviderSyncCallback`.
+- `FederatedCapacitorSyncResult` is a data class carrying optional metadata.
+- Registry methods are annotated with `@JvmStatic` for Java-friendly access.
+- The registry rejects blank and duplicate provider IDs.
+
+## Error Architecture
+
+The SDK defines three shared error categories:
+
+| Error | Emitted by | Meaning |
+| --- | --- | --- |
+| `providerNotRegistered` / `ProviderNotRegistered` | SDK registry | No provider exists for the requested ID. |
+| `invalidConfiguration` / `InvalidConfiguration` | SDK registry or provider implementation | Provider ID, manager configuration, or setup values are invalid. |
+| `syncFailed` / `SyncFailed` | Provider implementation | Sync could not complete. |
+
+Provider implementations should include actionable details and preserve underlying errors where the platform type supports it. The SDK does not translate backend-specific failures into a larger taxonomy; providers decide how much detail to expose through `syncFailed`.
+
+## Security and Operational Boundaries
+
+### 1. Backend authentication and authorization
+
+The SDK does not authenticate update requests. Providers are responsible for token handling, tenant or organization scoping, and any service-specific authorization checks.
+
+### 2. Artifact integrity
+
+Providers are responsible for verifying downloaded artifacts before activation. Common checks include signatures, checksums, manifest validation, archive traversal protection, and platform or binary version compatibility.
+
+### 3. Disk layout and cleanup
+
+Providers decide where assets are stored, how staged updates are represented, how activation becomes atomic, and when old bundles are removed. The only SDK-level requirement is that `latestAppDirectory` points to the active bundle expected by the host runtime.
+
+### 4. Rollback behavior
+
+Rollback policy belongs to the provider and host runtime integration. A robust provider should preserve enough state to avoid leaving `latestAppDirectory` pointed at a failed or partially extracted update.
+
+### 5. Metadata exposure
+
+Metadata returned through `FederatedCapacitorSyncResult` can be bridged to JavaScript. Providers should avoid including secrets, credentials, signed URLs, or internal-only service details in that metadata.
+
+## Architectural Tenets
+
+### 1. Keep the SDK as a contract layer
+
+The SDK should remain small and stable. Provider-specific networking, storage, retry, and backend decisions belong in provider implementations.
+
+Why it matters:
+
+- Portals and Federated Capacitor can depend on a stable API.
+- Providers can evolve independently as service requirements change.
+
+### 2. Make manager state immediately useful
+
+`latestAppDirectory` should be correct when a manager is created and after every successful sync. The host runtime should not need to understand provider storage internals to find the active bundle.
+
+Why it matters:
+
+- Portals and Federated Capacitor need a simple handoff point for loading web assets.
+- Sync success should imply that the active directory has already been updated when needed.
+
+### 3. Use registry lookup only where it adds value
+
+Federated Capacitor uses provider registration and lookup to decouple plugin loading from runtime manager creation. Direct Portals integrations can use a manager without registry lookup when the host app already controls construction.
+
+Why it matters:
+
+- The same manager contract supports both direct and plugin-discovered integrations.
+
+### 4. Preserve provider-defined sync results
+
+Sync results are marker-based so providers can return their own richer result types while still supporting a common metadata bridge for Federated Capacitor.
+
+Why it matters:
+
+- The SDK avoids overfitting to one backend response model.
+- Federated Capacitor still gets a predictable optional metadata path.
+
+## Testing Strategy
+
+Current tests focus on the SDK-owned behavior:
+
+- Registry lookup success and missing-provider failures.
+- Rejection of empty, blank, and duplicate provider IDs.
+- Concurrent registry access.
+- Android error details and underlying causes.
+
+Provider implementations should add their own tests for:
+
+- Configuration validation.
+- Update availability and no-update paths.
+- Download and integrity verification.
+- Atomic activation and rollback.
+- Cleanup policy.
+- Metadata returned to Federated Capacitor.
