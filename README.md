@@ -17,7 +17,7 @@ Swift Package Manager:
 ```swift
 .package(
     url: "https://github.com/ionic-team/live-update-provider-sdk.git",
-    from: "0.1.0-alpha.2"
+    from: "0.1.0"
 )
 ```
 
@@ -30,7 +30,7 @@ Add the product to your target:
 CocoaPods:
 
 ```ruby
-pod 'LiveUpdateProvider', '~> 0.1.0-alpha.2'
+pod 'LiveUpdateProvider', '~> 0.1.0'
 ```
 
 ### Android
@@ -39,7 +39,7 @@ Gradle:
 
 ```kotlin
 dependencies {
-    implementation("io.ionic:liveupdateprovider:0.1.0-alpha.2")
+    implementation("io.ionic:liveupdateprovider:0.1.0")
 }
 ```
 
@@ -207,10 +207,6 @@ For a working reference provider, see [`live-update-provider-mock`](https://gith
 - [ARCHITECTURE.md](ARCHITECTURE.md): provider contract, platform architecture, registry behavior, and operational boundaries
 - [docs/live-update-service-architecture.md](docs/live-update-service-architecture.md): optional guidance for teams building a live update backend service
 - [RELEASING.md](RELEASING.md): maintainer release process
-
-## Versioning
-
-Pre-1.0 releases may include API refinements as implementation feedback is incorporated.
 
 ## License
 
