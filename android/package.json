@@ -1,6 +1,6 @@
 {
   "name": "ionic-live-update-provider-android",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0",
   "description": "Native contracts for live update providers.",
   "homepage": "https://ionic.io/portals",
   "author": "Ionic Team <hi@ionic.io> (https://ionic.io)",
