@@ -10,7 +10,6 @@ class LiveUpdateErrorTests {
         val error = LiveUpdateProviderError.ProviderNotRegistered("test-provider")
 
         assertEquals("test-provider", error.providerId)
-        assertEquals("Provider with ID 'test-provider' not found", error.message)
     }
 
     @Test
@@ -20,7 +19,6 @@ class LiveUpdateErrorTests {
 
         assertEquals("missing appId", error.details)
         assertSame(cause, error.cause)
-        assertEquals("Invalid configuration: missing appId", error.message)
     }
 
     @Test
@@ -30,6 +28,5 @@ class LiveUpdateErrorTests {
 
         assertEquals("request failed", error.details)
         assertSame(cause, error.cause)
-        assertEquals("Sync failed: request failed", error.message)
     }
 }

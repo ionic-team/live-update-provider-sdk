@@ -3,8 +3,8 @@ package io.ionic.liveupdateprovider
 /**
  * Errors used by the Live Update Provider SDK.
  *
- * [ProviderNotRegistered] is emitted by the SDK runtime.
- * [InvalidConfiguration] and [SyncFailed] are intended for provider implementations.
+ * [ProviderNotRegistered] is emitted by the registry. Providers should use
+ * [InvalidConfiguration] during manager creation and [SyncFailed] during sync.
  */
 sealed interface LiveUpdateProviderError {
     /**

@@ -2,8 +2,8 @@ import Foundation
 
 /// Errors used by the Live Update Provider SDK.
 ///
-/// `providerNotRegistered` is emitted by the SDK runtime.
-/// `invalidConfiguration` and `syncFailed` are intended for provider implementations.
+/// `providerNotRegistered` is emitted by the registry. Providers should use
+/// `invalidConfiguration` during manager creation and `syncFailed` during sync.
 public enum LiveUpdateProviderError: Error {
     /// No provider is registered for the requested provider identifier.
     case providerNotRegistered(String)

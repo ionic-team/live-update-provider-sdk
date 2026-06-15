@@ -1,20 +1,20 @@
 import Foundation
 
-/// Thread-safe registry of `LiveUpdateProviding` implementations.
+/// Thread-safe registry of `LiveUpdateProvider` implementations.
 public final class LiveUpdateProviderRegistry {
     public static let shared = LiveUpdateProviderRegistry()
 
-    private var providers: [String: any LiveUpdateProviding] = [:]
+    private var providers: [String: any LiveUpdateProvider] = [:]
     private let lock = NSLock()
 
     private init() {}
 
     /// Registers a provider by `id`.
     ///
-    /// - Throws: `LiveUpdateProviderError.invalidConfiguration` when the provider ID is empty
+    /// - Throws: `LiveUpdateProviderError.invalidConfiguration` when the provider ID is blank
     ///   or when another provider is already registered with the same ID.
-    public func register(_ provider: any LiveUpdateProviding) throws {
-        guard !provider.id.isEmpty else {
+    public func register(_ provider: any LiveUpdateProvider) throws {
+        guard !provider.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw LiveUpdateProviderError.invalidConfiguration(
                 "Cannot register a provider with an empty ID.",
                 underlyingError: nil
@@ -35,7 +35,7 @@ public final class LiveUpdateProviderRegistry {
     }
 
     /// Returns the provider registered for `id`, or `nil` when missing.
-    public func resolve(_ id: String) -> (any LiveUpdateProviding)? {
+    public func resolve(_ id: String) -> (any LiveUpdateProvider)? {
         lock.lock()
         defer { lock.unlock() }
         return providers[id]
@@ -44,7 +44,7 @@ public final class LiveUpdateProviderRegistry {
     /// Returns the provider registered for `id`.
     ///
     /// - Throws: `LiveUpdateProviderError.providerNotRegistered` when missing.
-    public func require(_ id: String) throws -> any LiveUpdateProviding {
+    public func require(_ id: String) throws -> any LiveUpdateProvider {
         guard let provider = resolve(id) else {
             throw LiveUpdateProviderError.providerNotRegistered(id)
         }

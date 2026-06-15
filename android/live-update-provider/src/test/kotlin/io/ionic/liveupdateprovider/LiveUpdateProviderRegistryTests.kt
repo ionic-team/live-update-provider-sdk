@@ -6,9 +6,11 @@ import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 class LiveUpdateProviderRegistryTests {
     @Test
@@ -74,43 +76,35 @@ class LiveUpdateProviderRegistryTests {
         val id = uniqueProviderId()
         val first = TestProvider(id)
         LiveUpdateProviderRegistry.register(first)
-        var invalidConfigurationCount = 0
+        val invalidConfigurationCount = AtomicInteger(0)
 
         runConcurrent(times = 24) {
             try {
                 LiveUpdateProviderRegistry.register(TestProvider(id))
             } catch (error: LiveUpdateProviderError.InvalidConfiguration) {
-                synchronized(this) {
-                    invalidConfigurationCount += 1
-                }
+                invalidConfigurationCount.incrementAndGet()
             }
         }
 
         assertSame(first, LiveUpdateProviderRegistry.resolve(id))
-        assertTrue("Expected duplicate registrations to throw", invalidConfigurationCount > 0)
+        assertEquals(24, invalidConfigurationCount.get())
     }
 
     @Test
-    fun `concurrent mixed register and resolve does not crash`() {
+    fun `concurrent unique registrations are resolvable`() {
         val runId = UUID.randomUUID().toString()
-        val ids = (0 until 10).map { "provider-$runId-$it" }
+        val providersById = ConcurrentHashMap<String, TestProvider>()
 
         runConcurrent(times = 60) { index ->
-            val id = ids[index % ids.size]
-            when (index % 2) {
-                0 -> {
-                    try {
-                        LiveUpdateProviderRegistry.register(TestProvider(id))
-                    } catch (_: LiveUpdateProviderError.InvalidConfiguration) {
-                        // expected for duplicate IDs in concurrent scenarios
-                    }
-                }
-                else -> LiveUpdateProviderRegistry.resolve(id)
-            }
+            val id = "provider-$runId-$index"
+            val provider = TestProvider(id)
+            providersById[id] = provider
+            LiveUpdateProviderRegistry.register(provider)
         }
 
-        val registeredCount = ids.count { LiveUpdateProviderRegistry.resolve(it) != null }
-        assertTrue("Expected at least one provider to be registered", registeredCount > 0)
+        providersById.forEach { (id, provider) ->
+            assertSame(provider, LiveUpdateProviderRegistry.resolve(id))
+        }
     }
 
     private fun uniqueProviderId(): String = "provider-${UUID.randomUUID()}"
