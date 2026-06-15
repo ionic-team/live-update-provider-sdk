@@ -1,0 +1,35 @@
+name: Publish Native iOS Library
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  publish-ios:
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify release tag
+        run: |
+          PODSPEC_VERSION="$(ruby -e "puts File.read('LiveUpdateProvider.podspec').match(/s\\.version\\s*=\\s*'([^']+)'/)[1]")"
+          if [ "$GITHUB_REF_NAME" != "$PODSPEC_VERSION" ]; then
+            echo "Tag '$GITHUB_REF_NAME' does not match podspec version '$PODSPEC_VERSION'."
+            exit 1
+          fi
+
+      - name: Install CocoaPods
+        run: sudo gem install cocoapods --no-document
+
+      - name: Verify iOS
+        run: |
+          swift test
+          pod lib lint LiveUpdateProvider.podspec
+
+      - name: Publish to CocoaPods
+        env:
+          COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
+        run: pod trunk push LiveUpdateProvider.podspec

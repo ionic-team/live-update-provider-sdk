@@ -3,23 +3,24 @@ package io.ionic.liveupdateprovider
 import java.io.File
 
 /**
- * Manages live updates for a configured app instance.
+ * Manages live update sync for a configured app instance.
  */
 interface LiveUpdateProviderManager {
     /**
      * Latest resolved app directory, if available.
      *
-     * This should reflect the currently active web bundle path for the manager.
+     * When sync prepares a new bundle for host runtime use, this value should
+     * be updated before signaling success.
      */
     val latestAppDirectory: File?
 
     /**
-     * Performs a sync operation.
+     * Providers should call exactly one terminal callback per invocation:
+     * [LiveUpdateProviderSyncCallback.onSuccess] or
+     * [LiveUpdateProviderSyncCallback.onFailure]. The SDK does not require a
+     * specific callback thread.
      *
-     * Providers should update [latestAppDirectory] before signaling success when
-     * new assets are applied.
-     *
-     * @param callback Callback receiving either success or failure.
+     * @param callback callback receiving either success or failure
      */
     fun sync(callback: LiveUpdateProviderSyncCallback?)
 }
@@ -37,9 +38,21 @@ interface LiveUpdateProviderSyncCallback {
 interface LiveUpdateProviderSyncResult
 
 /**
- * Optional sync result extension for Federated Capacitor metadata bridging.
+ * Sync result that includes provider metadata.
+ *
+ * Federated Capacitor can expose this metadata to JavaScript after a provider sync.
+ * Metadata intended for JavaScript exposure should use bridge-safe values.
  */
-data class FederatedCapacitorSyncResult(
-    /** Provider metadata from the sync operation to bridge to the web layer. */
+interface MetadataSyncResult : LiveUpdateProviderSyncResult {
+    /** Provider metadata returned with the sync result. */
     val metadata: Map<String, Any>?
-): LiveUpdateProviderSyncResult
+}
+
+/**
+ * Default [MetadataSyncResult] implementation.
+ *
+ * @param metadata optional bridge-safe metadata for host integrations
+ */
+data class DefaultMetadataSyncResult(
+    override val metadata: Map<String, Any>? = null
+) : MetadataSyncResult
