@@ -26,17 +26,18 @@ Portals integrations can depend directly on a provider-created manager. In that 
 
 Key files:
 
-- iOS: `ios/Sources/LiveUpdateProvider/Protocols.swift`
-- iOS: `ios/Sources/LiveUpdateProvider/LiveUpdateProviderRegistry.swift`
-- Android: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/LiveUpdateProvider.kt`
-- Android: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/LiveUpdateProviderManager.kt`
-- Android: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/LiveUpdateProviderRegistry.kt`
+- iOS: `ios/Sources/LiveUpdateProvider/Manager.swift`
+- iOS: `ios/Sources/LiveUpdateProvider/FederatedCapacitor/Provider.swift`
+- iOS: `ios/Sources/LiveUpdateProvider/FederatedCapacitor/Registry.swift`
+- Android: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/federatedcapacitor/LiveUpdateProvider.kt`
+- Android: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/ProviderManager.kt`
+- Android: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/federatedcapacitor/ProviderRegistry.kt`
 
 ### Runtime modes
 
 | Mode | Entry point | What it does |
 | --- | --- | --- |
-| Portals | `LiveUpdateProviderManager` | Gives a configured Portal a manager that can report its latest app directory and perform provider-defined sync work. |
+| Portals | `ProviderManager` | Gives a configured Portal a manager that can report its latest app directory and perform provider-defined sync work. |
 | Federated Capacitor | `LiveUpdateProvider` plus registry lookup | Lets a provider plugin register itself by ID so the Federated Capacitor runtime can create managers from configuration. |
 
 ### Runtime capability boundaries
@@ -55,10 +56,10 @@ All platforms expose the same conceptual model:
 ```text
 LiveUpdateProvider
 `-- createManager(config)
-    `-- LiveUpdateProviderManager
+    `-- ProviderManager
         |-- latestAppDirectory
         `-- sync()
-            `-- LiveUpdateProviderSyncResult
+            `-- ProviderSyncResult
                 `-- MetadataSyncResult (optional metadata bridge)
 ```
 
@@ -67,12 +68,11 @@ LiveUpdateProvider
 | Concept | iOS | Android | Responsibility |
 | --- | --- | --- | --- |
 | Provider | `LiveUpdateProvider` | `LiveUpdateProvider` | Identifies a provider and creates managers from provider-specific configuration. |
-| Manager | `LiveUpdateProviderManager` | `LiveUpdateProviderManager` | Tracks the latest app directory and performs sync. |
-| Sync result marker | `LiveUpdateProviderSyncResult` | `LiveUpdateProviderSyncResult` | Allows providers to return implementation-specific sync results. |
-| Metadata sync result | `MetadataSyncResult` | `MetadataSyncResult` | Optional metadata-bearing result contract for host integrations. |
-| Default metadata result | `DefaultMetadataSyncResult` | `DefaultMetadataSyncResult` | Built-in result for returning metadata without a custom result type. |
-| Registry | `LiveUpdateProviderRegistry.shared` | `LiveUpdateProviderRegistry` object | Stores providers by ID for runtime lookup. |
-| Error type | `LiveUpdateProviderError` enum | `LiveUpdateProviderError` sealed interface | Standardizes provider-not-registered, invalid-configuration, and sync-failed errors. |
+| Manager | `ProviderManager` | `ProviderManager` | Tracks the latest app directory and performs sync. |
+| Sync result marker | `ProviderSyncResult` | `ProviderSyncResult` | Allows providers to return implementation-specific sync results. |
+| Metadata sync result | `MetadataSyncResult` | `MetadataSyncResult` | Built-in result carrying bridge-safe metadata for host integrations such as Federated Capacitor. |
+| Registry | `ProviderRegistry.shared` | `ProviderRegistry` object | Stores providers by ID for runtime lookup. |
+| Error type | `ProviderError` enum | `ProviderError` sealed interface | Standardizes provider-not-registered, invalid-configuration, and sync-failed errors. |
 
 ### Provider responsibilities
 
@@ -99,7 +99,7 @@ A production provider should also:
 
 ### Federated Capacitor metadata
 
-`MetadataSyncResult` is an optional metadata bridge. Providers may return any `LiveUpdateProviderSyncResult` from sync. A provider should return `MetadataSyncResult` when a host integration, such as Federated Capacitor, should pass provider metadata from native sync to JavaScript.
+`MetadataSyncResult` is an optional metadata bridge. Providers may return any `ProviderSyncResult` from sync. A provider should return `MetadataSyncResult` when a host integration, such as Federated Capacitor, should pass provider metadata from native sync to JavaScript.
 
 Metadata may be visible to application JavaScript. Providers should not include secrets, credentials, signed URLs, or internal-only service details.
 
@@ -138,10 +138,10 @@ Both platform registries are designed for concurrent access:
 
 Evidence:
 
-- `ios/Sources/LiveUpdateProvider/LiveUpdateProviderRegistry.swift`
-- `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/LiveUpdateProviderRegistry.kt`
-- `ios/Tests/LiveUpdateProviderTests/LiveUpdateProviderRegistryTests.swift`
-- `android/live-update-provider/src/test/kotlin/io/ionic/liveupdateprovider/LiveUpdateProviderRegistryTests.kt`
+- `ios/Sources/LiveUpdateProvider/FederatedCapacitor/Registry.swift`
+- `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/federatedcapacitor/ProviderRegistry.kt`
+- `ios/Tests/LiveUpdateProviderTests/ProviderRegistryTests.swift`
+- `android/live-update-provider/src/test/kotlin/io/ionic/liveupdateprovider/federatedcapacitor/ProviderRegistryTests.kt`
 
 ## Communication Patterns
 
@@ -172,7 +172,7 @@ sequenceDiagram
     participant Registry as Provider Registry
     participant Runtime as Federated Capacitor Runtime
     participant Provider as LiveUpdateProvider
-    participant Manager as LiveUpdateProviderManager
+    participant Manager as ProviderManager
     participant Service as Provider Service
     participant Disk as Device Storage
 
@@ -195,7 +195,7 @@ sequenceDiagram
 sequenceDiagram
     participant App as Host App
     participant Provider as Provider Code
-    participant Manager as LiveUpdateProviderManager
+    participant Manager as ProviderManager
     participant Portal as Portal Runtime
 
     App->>Provider: create/configure manager
@@ -210,9 +210,9 @@ sequenceDiagram
 
 | Path | Responsibility |
 | --- | --- |
-| `ios/Sources/LiveUpdateProvider` | Swift provider contracts, registry, errors, metadata sync result contract, and default metadata result. |
+| `ios/Sources/LiveUpdateProvider` | Swift provider contracts, registry, errors, and metadata sync result. |
 | `ios/Tests/LiveUpdateProviderTests` | Swift tests for registry behavior and concurrency safety. |
-| `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider` | Kotlin provider contracts, registry, errors, callback interfaces, metadata sync result contract, and default metadata result. |
+| `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider` | Kotlin provider contracts, registry, errors, callback interfaces, metadata sync result, and Kotlin coroutine helpers. |
 | `android/live-update-provider/src/test/kotlin/io/ionic/liveupdateprovider` | Kotlin tests for registry behavior, error models, and concurrent access. |
 | `Package.swift` | Swift Package Manager definition for the iOS SDK. |
 | `LiveUpdateProvider.podspec` | CocoaPods package definition for the iOS SDK. |
@@ -226,7 +226,7 @@ sequenceDiagram
 
 | Platform | Package surface | Manager sync style | Latest app directory type | Registry implementation |
 | --- | --- | --- | --- | --- |
-| iOS | Swift library distributed through SPM and CocoaPods | `async throws -> any LiveUpdateProviderSyncResult` | `URL?` | Singleton with `NSLock` and dictionary storage. |
+| iOS | Swift library distributed through SPM and CocoaPods | `async throws -> (any ProviderSyncResult)?` | `URL?` | Singleton with `NSLock` and dictionary storage. |
 | Android | Android library distributed as Maven/AAR artifact | Callback-based `sync(callback)` | `File?` | Kotlin object with `ConcurrentHashMap`. |
 
 ### iOS
@@ -235,18 +235,17 @@ iOS exposes Swift protocols and a singleton registry.
 
 Key files:
 
-- Contracts: `ios/Sources/LiveUpdateProvider/Protocols.swift`
-- Registry: `ios/Sources/LiveUpdateProvider/LiveUpdateProviderRegistry.swift`
+- Contracts: `ios/Sources/LiveUpdateProvider/Manager.swift`, `ios/Sources/LiveUpdateProvider/SyncResult.swift`, `ios/Sources/LiveUpdateProvider/FederatedCapacitor/Provider.swift`
+- Registry: `ios/Sources/LiveUpdateProvider/FederatedCapacitor/Registry.swift`
 - Errors: `ios/Sources/LiveUpdateProvider/Errors.swift`
 - SPM package: `Package.swift`
 - CocoaPods package: `LiveUpdateProvider.podspec`
 
 Important iOS behaviors:
 
-- `LiveUpdateProviderManager.sync()` is asynchronous and throws on failure.
+- `ProviderManager.sync()` is asynchronous and throws on failure.
 - `LiveUpdateProvider.createManager(config:)` receives provider-specific configuration as `[String: Any]`.
-- `MetadataSyncResult` identifies sync results that expose optional metadata.
-- `DefaultMetadataSyncResult` provides a built-in metadata result.
+- `MetadataSyncResult` is the built-in result carrying bridge-safe metadata; `sync()` returns `nil` when there is nothing to report.
 - The registry rejects empty and duplicate provider IDs.
 
 ### Android
@@ -255,20 +254,19 @@ Android exposes Kotlin interfaces and a registry object.
 
 Key files:
 
-- Provider contract: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/LiveUpdateProvider.kt`
-- Manager and sync result contracts: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/LiveUpdateProviderManager.kt`
-- Registry: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/LiveUpdateProviderRegistry.kt`
-- Errors: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/LiveUpdateProviderError.kt`
+- Provider contract: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/federatedcapacitor/LiveUpdateProvider.kt`
+- Manager and sync result contracts: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/ProviderManager.kt`, `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/ProviderSyncResult.kt`
+- Registry: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/federatedcapacitor/ProviderRegistry.kt`
+- Errors: `android/live-update-provider/src/main/kotlin/io/ionic/liveupdateprovider/ProviderError.kt`
 - Build configuration: `android/live-update-provider/build.gradle.kts`
 
 Important Android behaviors:
 
 - `LiveUpdateProvider.createManager(context, config)` receives an Android `Context` and provider-specific configuration as `Map<String, Any>`.
-- `LiveUpdateProviderManager.sync(callback)` reports success or failure through `LiveUpdateProviderSyncCallback`.
+- `ProviderManager.sync(callback)` reports success or failure through `ProviderSyncCallback`.
 - Providers should call exactly one terminal callback for each sync invocation: `onSuccess` or `onFailure`.
 - The SDK does not require callbacks to be invoked on a specific thread. Providers should document their threading behavior.
-- `MetadataSyncResult` identifies sync results that expose optional metadata.
-- `DefaultMetadataSyncResult` is a data class carrying optional metadata.
+- `MetadataSyncResult` is a data class carrying bridge-safe metadata; the sync callback receives `null` when there is nothing to report.
 - Registry methods are annotated with `@JvmStatic` for Java-friendly access.
 - The registry rejects blank and duplicate provider IDs.
 

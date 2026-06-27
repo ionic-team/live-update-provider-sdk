@@ -1,8 +1,8 @@
 import Foundation
 
 /// Thread-safe registry of `LiveUpdateProvider` implementations.
-public final class LiveUpdateProviderRegistry {
-    public static let shared = LiveUpdateProviderRegistry()
+public final class ProviderRegistry {
+    public static let shared = ProviderRegistry()
 
     private var providers: [String: any LiveUpdateProvider] = [:]
     private let lock = NSLock()
@@ -11,11 +11,11 @@ public final class LiveUpdateProviderRegistry {
 
     /// Registers a provider by `id`.
     ///
-    /// - Throws: `LiveUpdateProviderError.invalidConfiguration` when the provider ID is blank
+    /// - Throws: `ProviderError.invalidConfiguration` when the provider ID is blank
     ///   or when another provider is already registered with the same ID.
     public func register(_ provider: any LiveUpdateProvider) throws {
         guard !provider.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw LiveUpdateProviderError.invalidConfiguration(
+            throw ProviderError.invalidConfiguration(
                 "Cannot register a provider with an empty ID.",
                 underlyingError: nil
             )
@@ -25,7 +25,7 @@ public final class LiveUpdateProviderRegistry {
         defer { lock.unlock() }
 
         guard providers[provider.id] == nil else {
-            throw LiveUpdateProviderError.invalidConfiguration(
+            throw ProviderError.invalidConfiguration(
                 "Provider with ID '\(provider.id)' is already registered.",
                 underlyingError: nil
             )
@@ -43,10 +43,10 @@ public final class LiveUpdateProviderRegistry {
 
     /// Returns the provider registered for `id`.
     ///
-    /// - Throws: `LiveUpdateProviderError.providerNotRegistered` when missing.
+    /// - Throws: `ProviderError.providerNotRegistered` when missing.
     public func require(_ id: String) throws -> any LiveUpdateProvider {
         guard let provider = resolve(id) else {
-            throw LiveUpdateProviderError.providerNotRegistered(id)
+            throw ProviderError.providerNotRegistered(id)
         }
         return provider
     }

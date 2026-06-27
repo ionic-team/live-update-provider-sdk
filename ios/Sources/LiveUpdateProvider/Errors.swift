@@ -2,20 +2,20 @@ import Foundation
 
 /// Errors used by the Live Update Provider SDK.
 ///
-/// `providerNotRegistered` is emitted by the registry. Providers should use
-/// `invalidConfiguration` during manager creation and `syncFailed` during sync.
-public enum LiveUpdateProviderError: Error {
-    /// No provider is registered for the requested provider identifier.
+/// The registry emits `providerNotRegistered`. Providers use `invalidConfiguration`
+/// when creating a manager and `syncFailed` during sync.
+public enum ProviderError: Error {
+    /// No provider is registered for the requested identifier.
     case providerNotRegistered(String)
 
-    /// Provider configuration is missing required values or contains invalid values.
+    /// Required configuration is missing or invalid.
     case invalidConfiguration(String, underlyingError: Error?)
 
-    /// A sync operation failed before completion.
+    /// Sync could not complete.
     case syncFailed(String, underlyingError: Error?)
 }
 
-extension LiveUpdateProviderError: LocalizedError {
+extension ProviderError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .providerNotRegistered(let id):

@@ -1,11 +1,11 @@
 import XCTest
 @testable import LiveUpdateProvider
 
-private struct MockManager: LiveUpdateProviderManager {
+private struct MockManager: ProviderManager {
     let latestAppDirectory: URL? = nil
 
-    func sync() async throws -> any LiveUpdateProviderSyncResult {
-        DefaultMetadataSyncResult(metadata: nil)
+    func sync() async throws -> (any ProviderSyncResult)? {
+        nil
     }
 }
 
@@ -14,14 +14,14 @@ private struct MockProvider: LiveUpdateProvider {
 
     func createManager(
         config: [String: Any]
-    ) throws -> any LiveUpdateProviderManager {
+    ) throws -> any ProviderManager {
         MockManager()
     }
 }
 
-final class LiveUpdateProviderRegistryTests: XCTestCase {
+final class ProviderRegistryTests: XCTestCase {
     func testResolveReturnsRegisteredProvider() throws {
-        let registry = LiveUpdateProviderRegistry.shared
+        let registry = ProviderRegistry.shared
         let providerId = "test-provider-\(UUID().uuidString)"
         let provider = MockProvider(id: providerId)
 
@@ -35,11 +35,11 @@ final class LiveUpdateProviderRegistryTests: XCTestCase {
     func testResolveReturnsNilForUnknownProvider() {
         let providerId = "missing-provider-\(UUID().uuidString)"
 
-        XCTAssertNil(LiveUpdateProviderRegistry.shared.resolve(providerId))
+        XCTAssertNil(ProviderRegistry.shared.resolve(providerId))
     }
 
     func testRequireReturnsRegisteredProvider() throws {
-        let registry = LiveUpdateProviderRegistry.shared
+        let registry = ProviderRegistry.shared
         let providerId = "required-provider-\(UUID().uuidString)"
 
         try registry.register(MockProvider(id: providerId))
@@ -53,9 +53,9 @@ final class LiveUpdateProviderRegistryTests: XCTestCase {
         let providerId = "missing-provider-\(UUID().uuidString)"
 
         do {
-            _ = try LiveUpdateProviderRegistry.shared.require(providerId)
+            _ = try ProviderRegistry.shared.require(providerId)
             XCTFail("Expected require to throw for missing provider")
-        } catch LiveUpdateProviderError.providerNotRegistered(let id) {
+        } catch ProviderError.providerNotRegistered(let id) {
             XCTAssertEqual(id, providerId)
         } catch {
             XCTFail("Expected providerNotRegistered, got: \(error)")
@@ -63,7 +63,7 @@ final class LiveUpdateProviderRegistryTests: XCTestCase {
     }
 
     func testConcurrentUniqueRegistrationsAreResolvable() async throws {
-        let registry = LiveUpdateProviderRegistry.shared
+        let registry = ProviderRegistry.shared
         let runId = UUID().uuidString
 
         try await withThrowingTaskGroup(of: Void.self) { group in
@@ -85,14 +85,14 @@ final class LiveUpdateProviderRegistryTests: XCTestCase {
     }
 
     func testRegisterThrowsForBlankProviderId() {
-        let registry = LiveUpdateProviderRegistry.shared
+        let registry = ProviderRegistry.shared
         let providers = [MockProvider(id: ""), MockProvider(id: "   ")]
 
         for provider in providers {
             do {
                 try registry.register(provider)
                 XCTFail("Expected register to throw for blank provider ID")
-            } catch LiveUpdateProviderError.invalidConfiguration(let details, _) {
+            } catch ProviderError.invalidConfiguration(let details, _) {
                 XCTAssertTrue(details.contains("empty ID"))
             } catch {
                 XCTFail("Expected invalidConfiguration, got: \(error)")
@@ -101,7 +101,7 @@ final class LiveUpdateProviderRegistryTests: XCTestCase {
     }
 
     func testRegisterThrowsForDuplicateProviderId() throws {
-        let registry = LiveUpdateProviderRegistry.shared
+        let registry = ProviderRegistry.shared
         let providerId = "duplicate-provider-\(UUID().uuidString)"
 
         try registry.register(MockProvider(id: providerId))
@@ -109,7 +109,7 @@ final class LiveUpdateProviderRegistryTests: XCTestCase {
         do {
             try registry.register(MockProvider(id: providerId))
             XCTFail("Expected register to throw for duplicate provider ID")
-        } catch LiveUpdateProviderError.invalidConfiguration(let details, _) {
+        } catch ProviderError.invalidConfiguration(let details, _) {
             XCTAssertTrue(details.contains("already registered"))
         } catch {
             XCTFail("Expected invalidConfiguration, got: \(error)")

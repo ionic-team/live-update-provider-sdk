@@ -4,10 +4,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Test
 
-class LiveUpdateErrorTests {
+class ProviderErrorTests {
     @Test
     fun `provider not registered includes provider id`() {
-        val error = LiveUpdateProviderError.ProviderNotRegistered("test-provider")
+        val error = ProviderError.ProviderNotRegistered("test-provider")
 
         assertEquals("test-provider", error.providerId)
     }
@@ -15,7 +15,7 @@ class LiveUpdateErrorTests {
     @Test
     fun `invalid configuration carries details and cause`() {
         val cause = IllegalArgumentException("bad config")
-        val error = LiveUpdateProviderError.InvalidConfiguration("missing appId", cause)
+        val error = ProviderError.InvalidConfiguration("missing appId", cause)
 
         assertEquals("missing appId", error.details)
         assertSame(cause, error.cause)
@@ -24,7 +24,7 @@ class LiveUpdateErrorTests {
     @Test
     fun `sync failed carries details and cause`() {
         val cause = RuntimeException("network down")
-        val error = LiveUpdateProviderError.SyncFailed("request failed", cause)
+        val error = ProviderError.SyncFailed("request failed", cause)
 
         assertEquals("request failed", error.details)
         assertSame(cause, error.cause)
