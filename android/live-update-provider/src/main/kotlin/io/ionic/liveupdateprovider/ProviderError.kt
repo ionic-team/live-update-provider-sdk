@@ -1,25 +1,20 @@
 package io.ionic.liveupdateprovider
 
-/**
- * Errors used by the Live Update Provider SDK.
- *
- * The registry emits [ProviderNotRegistered]. Providers use [InvalidConfiguration]
- * when creating a manager and [SyncFailed] during sync.
- */
-sealed interface ProviderError {
+/** Errors reported by provider registration, configuration, and sync operations. */
+sealed class ProviderError(message: String, cause: Throwable? = null) : Exception(message, cause) {
     /** Required configuration is missing or invalid. */
     class InvalidConfiguration(
         val details: String,
         cause: Throwable? = null
-    ) : Exception("Invalid configuration: $details", cause), ProviderError
+    ) : ProviderError("Invalid configuration: $details", cause)
 
     /** Sync could not complete. */
     class SyncFailed(
         val details: String,
         cause: Throwable? = null
-    ) : Exception("Sync failed: $details", cause), ProviderError
+    ) : ProviderError("Sync failed: $details", cause)
 
     /** No provider is registered for the requested identifier. */
     class ProviderNotRegistered(val providerId: String) :
-        Exception("Live update provider '$providerId' is not registered."), ProviderError
+        ProviderError("Live update provider '$providerId' is not registered.")
 }

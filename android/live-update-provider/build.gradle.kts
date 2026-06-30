@@ -6,6 +6,7 @@ plugins {
     id("com.android.library")
     kotlin("android")
     id("com.vanniktech.maven.publish")
+    id("org.jetbrains.dokka")
 }
 
 android {

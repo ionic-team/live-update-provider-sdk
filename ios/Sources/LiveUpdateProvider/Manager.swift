@@ -1,15 +1,14 @@
 import Foundation
 
-/// Syncs live update assets for a configured app instance.
+ 
+/// Manages live update assets for a configured app instance.
 public protocol ProviderManager {
-    /// The latest app directory the provider has prepared, if any.
-    ///
-    /// Update this before `sync()` returns when a new bundle is ready.
+    /// The latest app directory prepared by the provider, if one is available.
     var latestAppDirectory: URL? { get }
 
-    /// Syncs provider-managed assets.
+    /// Synchronizes provider-managed web assets.
     ///
     /// - Returns: A provider-defined result, or `nil` when there is nothing to report.
-    /// - Throws: An error when sync cannot complete.
+    /// - Throws: `ProviderError.syncFailed` when synchronization cannot complete.
     func sync() async throws -> (any ProviderSyncResult)?
 }

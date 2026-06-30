@@ -1,24 +1,16 @@
-# Live Update Provider SDK
+# Live Update Provider
 
-[![CI](https://img.shields.io/github/actions/workflow/status/ionic-team/live-update-provider-sdk/ci.yml?branch=main&label=CI)](https://github.com/ionic-team/live-update-provider-sdk/actions/workflows/ci.yml)
-[![Maven Central](https://img.shields.io/maven-central/v/io.ionic/liveupdateprovider?label=Maven%20Central)](https://central.sonatype.com/artifact/io.ionic/liveupdateprovider)
+[![Swift Package Manager](https://img.shields.io/github/v/release/ionic-team/live-update-provider-sdk?label=SwiftPM)](https://github.com/ionic-team/live-update-provider-sdk/releases)
 [![CocoaPods](https://img.shields.io/cocoapods/v/LiveUpdateProvider?label=CocoaPods)](https://cocoapods.org/pods/LiveUpdateProvider)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Maven Central](https://img.shields.io/maven-central/v/io.ionic/liveupdateprovider?label=Maven%20Central)](https://central.sonatype.com/artifact/io.ionic/liveupdateprovider)
 
-Native iOS and Android contracts for integrating external live update services with [Ionic Portals](https://ionic.io/docs/portals/) and [Federated Capacitor](https://ionic.io/docs/portals/for-capacitor/overview).
+Live Update Provider is the shared iOS and Android contract that lets [Ionic Portals](https://ionic.io/docs/portals/) and [Federated Capacitor](https://ionic.io/docs/portals/for-capacitor/overview) load web assets from any external live update service, without depending on one specific backend.
 
 ## Overview
 
-This SDK defines the iOS and Android interfaces that live update providers implement so certain Ionic products can load web assets from a provider-managed source. It is a contract layer only — it does not implement an update backend, downloader, or storage strategy.
+This project is centered around one main component: `ProviderManager`. A `ProviderManager` performs a sync for a single configured app instance and exposes the latest prepared app directory via `latestAppDirectory` for the host runtime to load. A provider implements the synchronization work behind it, including fetching, verifying, storing, and activating web assets.
 
-The project was created as part of the transition away from [Ionic Live Updates](https://ionic.io/docs/appflow/deploy/intro) backed by [Ionic Appflow](https://ionic.io/docs/appflow). Standard Capacitor apps can integrate alternative live update services directly, but Ionic Portals and Federated Capacitor need a stable provider contract that does not depend on one backend service.
-
-## Requirements
-
-| Platform | Minimum | Toolchain |
-| --- | --- | --- |
-| iOS | 15.0 | Swift 5.9 |
-| Android | API 24 | JDK 17 |
+There are two integration paths. Ionic Portals constructs and uses a `ProviderManager` directly. Federated Capacitor resolves a registered provider by ID through `LiveUpdateProvider` and `ProviderRegistry`, which then creates a `ProviderManager`.
 
 ## Installation
 
@@ -32,8 +24,6 @@ Swift Package Manager:
     from: "0.2.0"
 )
 ```
-
-Add the product to your target:
 
 ```swift
 .product(name: "LiveUpdateProvider", package: "live-update-provider-sdk")
@@ -55,183 +45,169 @@ dependencies {
 }
 ```
 
-## Provider Model
+## Usage
 
-The SDK has two provider roles:
+A provider implements `ProviderManager` and ships one of two ways, depending on the host: as a native iOS/Android library for Ionic Portals, or as a Capacitor plugin for Federated Capacitor.
 
-- Provider: identifies a live update provider and creates configured managers.
-- Manager: syncs one configured app instance and reports the latest app directory.
+### Implement a manager
 
-| Concept | iOS | Android |
-| --- | --- | --- |
-| Provider | `LiveUpdateProvider` | `LiveUpdateProvider` |
-| Manager | `ProviderManager` | `ProviderManager` |
-| Sync result marker | `ProviderSyncResult` | `ProviderSyncResult` |
-| Metadata sync result | `MetadataSyncResult` | `MetadataSyncResult` |
-| Registry | `ProviderRegistry.shared` | `ProviderRegistry` |
-
-On Android, the Federated Capacitor types (`LiveUpdateProvider`, `ProviderRegistry`)
-live in the `io.ionic.liveupdateprovider.federatedcapacitor` package; the shared contracts live
-in `io.ionic.liveupdateprovider`.
-
-`latestAppDirectory` is the handoff point between the provider and the host runtime. It should point to the latest app directory that the provider has prepared. It does not mean that a WebView is currently displaying that directory.
-
-`MetadataSyncResult` is optional. Return it when a host integration, such as Federated Capacitor, should pass provider metadata from native sync to JavaScript. Metadata intended for JavaScript exposure should use bridge-safe values: strings, numbers, booleans, nulls, arrays, and plain dictionaries/maps.
-
-## Build a Provider
-
-### Ionic Portals
-
-Portals integrations use the manager contract directly:
-
-- Implement `ProviderManager`.
-- Construct the manager from your app or provider integration code.
-- Pass the configured manager to the Portal configuration.
-
-Portals does not require `ProviderRegistry` registration.
-
-### Federated Capacitor
-
-Federated Capacitor integrations use provider lookup:
-
-- Implement `LiveUpdateProvider`.
-- Implement `ProviderManager`.
-- Package the provider as a Capacitor plugin.
-- Register the provider with `ProviderRegistry` during plugin initialization.
-
-The Federated Capacitor runtime resolves the provider by ID, passes provider-specific configuration to `createManager`, and then calls the returned manager.
-
-## Minimal Provider Shape
-
-### iOS
+#### iOS
 
 ```swift
 import LiveUpdateProvider
 
-final class ExampleProvider: LiveUpdateProvider {
-    let id = "example"
-
-    func createManager(config: [String: Any]) throws -> any ProviderManager {
-        guard config["appId"] is String else {
-            throw ProviderError.invalidConfiguration(
-                "Missing appId.",
-                underlyingError: nil
-            )
-        }
-
-        return ExampleManager()
-    }
-}
-
 final class ExampleManager: ProviderManager {
+    private let appId: String
     private(set) var latestAppDirectory: URL?
+
+    init(appId: String) {
+        self.appId = appId
+    }
 
     func sync() async throws -> (any ProviderSyncResult)? {
         do {
             latestAppDirectory = try prepareAssets()
-            // Return `nil` when there is nothing to report, or a custom
-            // `ProviderSyncResult`. Use `MetadataSyncResult` to pass
-            // bridge-safe metadata to Federated Capacitor.
-            return MetadataSyncResult(metadata: ["status": "updated"])
+            return nil
         } catch {
-            throw ProviderError.syncFailed(
-                "Unable to sync live update assets.",
-                underlyingError: error
-            )
+            throw ProviderError.syncFailed(message: "Unable to sync live update assets.", underlyingError: error)
         }
     }
 
     private func prepareAssets() throws -> URL {
-        // Fetch, validate, store, and prepare provider-managed assets.
+        // Fetch, validate, store, and activate provider-managed assets.
         URL(fileURLWithPath: "/path/to/latest/app")
     }
 }
 ```
 
-### Android
+#### Android
 
 ```kotlin
-import android.content.Context
-import io.ionic.liveupdateprovider.MetadataSyncResult
 import io.ionic.liveupdateprovider.ProviderError
 import io.ionic.liveupdateprovider.ProviderManager
 import io.ionic.liveupdateprovider.ProviderSyncCallback
-import io.ionic.liveupdateprovider.federatedcapacitor.LiveUpdateProvider
 import java.io.File
 
-class ExampleProvider : LiveUpdateProvider {
-    override val id = "example"
-
-    override fun createManager(
-        context: Context,
-        config: Map<String, Any>
-    ): ProviderManager {
-        if (config["appId"] !is String) {
-            throw ProviderError.InvalidConfiguration("Missing appId.")
-        }
-
-        return ExampleManager()
-    }
-}
-
-class ExampleManager : ProviderManager {
+class ExampleManager(private val appId: String) : ProviderManager {
     override var latestAppDirectory: File? = null
         private set
 
     override fun sync(callback: ProviderSyncCallback) {
         try {
             latestAppDirectory = prepareAssets()
-            // Pass `null` when there is nothing to report, or a custom
-            // ProviderSyncResult. Use MetadataSyncResult to pass
-            // bridge-safe metadata to Federated Capacitor.
-            callback.onSuccess(MetadataSyncResult(mapOf("status" to "updated")))
+            callback.onSuccess(null)
         } catch (error: Throwable) {
             callback.onFailure(
-                ProviderError.SyncFailed(
-                    "Unable to sync live update assets.",
-                    error
-                )
+                ProviderError.SyncFailed("Unable to sync live update assets.", error)
             )
         }
     }
 
     private fun prepareAssets(): File {
-        // Fetch, validate, store, and prepare provider-managed assets.
+        // Fetch, validate, store, and activate provider-managed assets.
         return File("/path/to/latest/app")
     }
 }
 ```
 
-Android providers should call exactly one terminal callback per `sync` invocation: `onSuccess` or `onFailure`.
+Kotlin callers can invoke `sync` through the `suspend fun ProviderManager.sync()` extension in the `io.ionic.liveupdateprovider.coroutines` package, rather than the callback.
 
-Kotlin providers can instead extend `CoroutineProviderManager` (from
-`io.ionic.liveupdateprovider.coroutines`), implementing
-`suspend fun performSync(): ProviderSyncResult?`; the callback contract is satisfied
-automatically. Kotlin consumers can call `suspend fun ProviderManager.sync(): ProviderSyncResult?`
-for an `async`-style API. Both are included in the main artifact.
+### Ionic Portals
 
-For a working reference provider, see [`live-update-provider-mock`](https://github.com/ionic-team/live-update-provider-mock).
+A Portals integration uses the manager directly — no provider type or registry is involved. In your native app, construct your `ProviderManager` and attach it to the Portal's configuration. Portals reads `latestAppDirectory` to locate the web assets and calls `sync` to refresh them.
 
-## Provider Contract
+### Federated Capacitor
 
-Key rules for provider implementations:
+Federated Capacitor resolves providers at runtime, so a provider supplies two things beyond the manager: a `LiveUpdateProvider` that creates managers from configuration, and a registration call so the runtime can find it by ID. Package this as a Capacitor plugin, registering with `ProviderRegistry` when the plugin loads. A web app installs the plugin and, for each app, selects a provider and passes its configuration.
 
-- Validate configuration before returning a manager; throw `invalidConfiguration` / `InvalidConfiguration` for bad config.
-- Point `latestAppDirectory` at the latest valid bundle before reporting sync success — never at a partial or invalid one.
-- Leave `latestAppDirectory` unchanged on failure or when no new bundle is prepared.
-- Throw `syncFailed` / `SyncFailed` when sync cannot complete.
-- Never expose secrets, tokens, signed URLs, or sensitive backend details through errors or metadata.
+See the [Federated Capacitor documentation](https://ionic.io/docs/portals/for-capacitor/live-updates) for more.
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the complete contract, including activation, rollback, and cleanup policy.
+#### iOS
+
+```swift
+final class ExampleProvider: LiveUpdateProvider {
+    let id = "example"
+
+    func createManager(config: [String: Any]) throws -> any ProviderManager {
+        guard let appId = config["appId"] as? String else {
+            throw ProviderError.invalidConfiguration(message: "Missing appId.")
+        }
+        return ExampleManager(appId: appId)
+    }
+}
+
+// In your Capacitor plugin's load():
+try ProviderRegistry.shared.register(ExampleProvider())
+```
+
+#### Android
+
+```kotlin
+class ExampleProvider : LiveUpdateProvider {
+    override val id = "example"
+
+    override fun createManager(context: Context, config: Map<String, Any>): ProviderManager {
+        val appId = config["appId"] as? String
+            ?: throw ProviderError.InvalidConfiguration("Missing appId.")
+        return ExampleManager(appId)
+    }
+}
+
+// In your Capacitor plugin's load():
+ProviderRegistry.register(ExampleProvider())
+```
+
+See the [Capacitor documentation](https://capacitorjs.com/docs/plugins/creating-plugins) for building and publishing a plugin.
+
+## Data Flow
+
+### Ionic Portals
+
+```mermaid
+sequenceDiagram
+    participant App as Host App
+    participant Provider as Provider Code
+    participant Manager as ProviderManager
+    participant Portal as Portal Runtime
+
+    App->>Provider: create/configure manager
+    Provider-->>App: manager
+    App->>Portal: attach manager
+    Portal->>Manager: latestAppDirectory
+    Portal->>Manager: sync()
+    Manager-->>Portal: sync result
+```
+
+### Federated Capacitor
+
+```mermaid
+sequenceDiagram
+    participant Plugin as Provider Plugin
+    participant Registry as ProviderRegistry
+    participant Runtime as Federated Capacitor Runtime
+    participant Provider as LiveUpdateProvider
+    participant Manager as ProviderManager
+
+    Plugin->>Registry: register(provider)
+    Runtime->>Registry: require(providerId)
+    Registry-->>Runtime: provider
+    Runtime->>Provider: createManager(config)
+    Provider-->>Runtime: manager
+    Runtime->>Manager: sync()
+    Manager-->>Runtime: sync result
+    Runtime->>Manager: latestAppDirectory
+```
+
+## Provider Guidance
+
+- Update `latestAppDirectory` to the latest valid bundle before reporting sync success — never point it at a partial or invalid bundle.
+- Providers handle their own authentication, artifact verification, cleanup, and rollback.
 
 ## Documentation
 
-- [ARCHITECTURE.md](ARCHITECTURE.md): provider contract, platform architecture, registry behavior, and operational boundaries
-- [DESIGN.md](DESIGN.md): API design rationale for the `0.2.0` contract
-- [docs/live-update-service-architecture.md](docs/live-update-service-architecture.md): optional guidance for teams building a live update backend service
-- [CHANGELOG.md](CHANGELOG.md): release history
-- [RELEASING.md](RELEASING.md): maintainer release process
+- [`live-update-provider-mock`](https://github.com/ionic-team/live-update-provider-mock) — a working reference provider.
+- [Building a backend service](docs/live-update-service-architecture.md) — optional guidance for the update service a provider talks to.
 
 ## License
 
-Licensed under the MIT License. See [LICENSE](LICENSE).
+Released under the MIT License. See [LICENSE](LICENSE).

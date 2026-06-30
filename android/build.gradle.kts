@@ -1,5 +1,5 @@
 plugins {
-    id("org.jetbrains.dokka") version "2.0.0"
+    id("org.jetbrains.dokka") version "2.0.0" apply false
     id("com.vanniktech.maven.publish") version "0.30.0" apply false
 }
 
@@ -12,9 +12,6 @@ buildscript {
     repositories {
         google()
         mavenCentral()
-        maven {
-            url = uri("https://plugins.gradle.org/m2/")
-        }
     }
 
     dependencies {
@@ -28,6 +25,4 @@ allprojects {
         google()
         mavenCentral()
     }
-
-    apply(plugin = "org.jetbrains.dokka")
 }

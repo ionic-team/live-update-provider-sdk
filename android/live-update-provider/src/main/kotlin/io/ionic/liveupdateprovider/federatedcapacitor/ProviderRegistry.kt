@@ -3,15 +3,15 @@ package io.ionic.liveupdateprovider.federatedcapacitor
 import io.ionic.liveupdateprovider.ProviderError
 import java.util.concurrent.ConcurrentHashMap
 
-/** Thread-safe registry of [LiveUpdateProvider] implementations. */
+/** Thread-safe registry for Federated Capacitor providers. */
 object ProviderRegistry {
     private val providers: ConcurrentHashMap<String, LiveUpdateProvider> = ConcurrentHashMap()
 
     /**
-     * Registers a provider by [LiveUpdateProvider.id].
+     * Registers a provider by ID.
      *
-     * @throws ProviderError.InvalidConfiguration when the provider ID is empty
-     * or when another provider is already registered with the same ID.
+     * @throws ProviderError.InvalidConfiguration when the provider ID is blank
+     * or already registered.
      */
     @JvmStatic
     @Throws(ProviderError.InvalidConfiguration::class)
@@ -30,14 +30,14 @@ object ProviderRegistry {
         }
     }
 
-    /** Returns the provider registered for [id], or null when missing. */
+    /** Returns the provider registered for [id], or null when none exists. */
     @JvmStatic
     fun resolve(id: String): LiveUpdateProvider? = providers[id]
 
     /**
      * Returns the provider registered for [id].
      *
-     * @throws ProviderError.ProviderNotRegistered when missing.
+     * @throws ProviderError.ProviderNotRegistered when no provider is registered for [id].
      */
     @JvmStatic
     @Throws(ProviderError.ProviderNotRegistered::class)
