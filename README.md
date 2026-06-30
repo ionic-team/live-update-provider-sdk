@@ -125,6 +125,8 @@ See the [Federated Capacitor documentation](https://ionic.io/docs/portals/for-ca
 #### iOS
 
 ```swift
+import LiveUpdateProvider
+
 final class ExampleProvider: LiveUpdateProvider {
     let id = "example"
 
@@ -143,6 +145,12 @@ try ProviderRegistry.shared.register(ExampleProvider())
 #### Android
 
 ```kotlin
+import android.content.Context
+import io.ionic.liveupdateprovider.ProviderError
+import io.ionic.liveupdateprovider.ProviderManager
+import io.ionic.liveupdateprovider.federatedcapacitor.LiveUpdateProvider
+import io.ionic.liveupdateprovider.federatedcapacitor.ProviderRegistry
+
 class ExampleProvider : LiveUpdateProvider {
     override val id = "example"
 
