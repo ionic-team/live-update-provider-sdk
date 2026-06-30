@@ -1,6 +1,5 @@
 import Foundation
 
- 
 /// Manages live update assets for a configured app instance.
 public protocol ProviderManager {
     /// The latest app directory prepared by the provider, if one is available.
