@@ -110,7 +110,7 @@ class ExampleManager(private val appId: String) : ProviderManager {
 }
 ```
 
-Kotlin callers can invoke `sync` through the `suspend fun ProviderManager.sync()` extension in the `io.ionic.liveupdateprovider.coroutines` package, rather than the callback.
+Kotlin callers can use the suspending `ProviderManager.sync()` extension from the `io.ionic.liveupdateprovider.coroutines` package instead of the callback API.
 
 ### Ionic Portals
 
@@ -161,6 +161,8 @@ See the [Capacitor documentation](https://capacitorjs.com/docs/plugins/creating-
 
 ## Data Flow
 
+The host runtime integration differs by product, but both paths end with a `ProviderManager` that syncs assets and exposes `latestAppDirectory`.
+
 ### Ionic Portals
 
 ```mermaid
@@ -198,15 +200,15 @@ sequenceDiagram
     Runtime->>Manager: latestAppDirectory
 ```
 
-## Provider Guidance
+## Provider Responsibilities
 
-- Update `latestAppDirectory` to the latest valid bundle before reporting sync success — never point it at a partial or invalid bundle.
-- Providers handle their own authentication, artifact verification, cleanup, and rollback.
+- Keep `latestAppDirectory` pointed at the latest valid app directory. Do not point it at partial, invalid, or rolled-back assets.
+- Own service-specific behavior such as authentication, artifact verification, cleanup, and rollback.
 
-## Documentation
+## Related Resources
 
-- [`live-update-provider-mock`](https://github.com/ionic-team/live-update-provider-mock) — a working reference provider.
-- [Building a backend service](docs/live-update-service-architecture.md) — optional guidance for the update service a provider talks to.
+- [Reference provider implementation](https://github.com/ionic-team/live-update-provider-mock)
+- [Building a backend service](docs/live-update-service-architecture.md)
 
 ## License
 
