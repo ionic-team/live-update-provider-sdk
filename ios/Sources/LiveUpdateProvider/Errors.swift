@@ -5,6 +5,9 @@ public enum ProviderError: Error {
     /// No provider is registered for the requested identifier.
     case providerNotRegistered(id: String)
 
+    /// Provider registration failed.
+    case registrationFailed(message: String)
+
     /// Required configuration is missing or invalid.
     case invalidConfiguration(message: String, underlyingError: Error?)
 
@@ -27,33 +30,12 @@ extension ProviderError: LocalizedError {
         switch self {
         case .providerNotRegistered(let id):
             return "Live update provider '\(id)' is not registered."
+        case .registrationFailed(let message):
+            return "Registration failed: \(message)"
         case .invalidConfiguration(let message, _):
             return "Invalid configuration: \(message)"
         case .syncFailed(let message, _):
             return "Sync failed: \(message)"
-        }
-    }
-}
-
-extension ProviderError: CustomNSError {
-    public static var errorDomain: String { "io.ionic.LiveUpdateProvider" }
-
-    public var errorCode: Int {
-        switch self {
-        case .providerNotRegistered: return 1
-        case .invalidConfiguration: return 2
-        case .syncFailed: return 3
-        }
-    }
-
-    public var errorUserInfo: [String: Any] {
-        switch self {
-        case .invalidConfiguration(_, let underlyingError),
-             .syncFailed(_, let underlyingError):
-            guard let underlyingError else { return [:] }
-            return [NSUnderlyingErrorKey: underlyingError]
-        case .providerNotRegistered:
-            return [:]
         }
     }
 }

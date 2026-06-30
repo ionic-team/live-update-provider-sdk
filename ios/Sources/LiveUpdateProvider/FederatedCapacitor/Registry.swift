@@ -11,11 +11,11 @@ public final class ProviderRegistry {
 
     /// Registers a provider by ID.
     ///
-    /// - Throws: `ProviderError.invalidConfiguration` when the provider ID is blank
+    /// - Throws: `ProviderError.registrationFailed` when the provider ID is blank
     ///   or already registered.
     public func register(_ provider: any LiveUpdateProvider) throws {
         guard !provider.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw ProviderError.invalidConfiguration(
+            throw ProviderError.registrationFailed(
                 message: "Cannot register a provider with an empty ID."
             )
         }
@@ -24,7 +24,7 @@ public final class ProviderRegistry {
         defer { lock.unlock() }
 
         guard providers[provider.id] == nil else {
-            throw ProviderError.invalidConfiguration(
+            throw ProviderError.registrationFailed(
                 message: "Provider with ID '\(provider.id)' is already registered."
             )
         }

@@ -211,6 +211,7 @@ sequenceDiagram
 ## Provider Responsibilities
 
 - Keep `latestAppDirectory` pointed at the latest valid app directory. Do not point it at partial, invalid, or rolled-back assets.
+- Restore `latestAppDirectory` from persisted state when a manager is created so the host can load existing assets on launch.
 - Own service-specific behavior such as authentication, artifact verification, cleanup, and rollback.
 
 ## Related Resources

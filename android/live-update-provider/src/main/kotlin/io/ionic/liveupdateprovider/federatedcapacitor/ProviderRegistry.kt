@@ -10,21 +10,21 @@ object ProviderRegistry {
     /**
      * Registers a provider by ID.
      *
-     * @throws ProviderError.InvalidConfiguration when the provider ID is blank
+     * @throws ProviderError.RegistrationFailed when the provider ID is blank
      * or already registered.
      */
     @JvmStatic
-    @Throws(ProviderError.InvalidConfiguration::class)
+    @Throws(ProviderError.RegistrationFailed::class)
     fun register(provider: LiveUpdateProvider) {
         if (provider.id.isBlank()) {
-            throw ProviderError.InvalidConfiguration(
+            throw ProviderError.RegistrationFailed(
                 "Cannot register a provider with an empty ID."
             )
         }
 
         val previous = providers.putIfAbsent(provider.id, provider)
         if (previous != null) {
-            throw ProviderError.InvalidConfiguration(
+            throw ProviderError.RegistrationFailed(
                 "Provider with ID '${provider.id}' is already registered."
             )
         }

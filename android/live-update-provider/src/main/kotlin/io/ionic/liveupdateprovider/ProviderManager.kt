@@ -10,7 +10,8 @@ interface ProviderManager {
     /**
      * Synchronizes provider-managed web assets.
      *
-     * Calls [ProviderSyncCallback.onSuccess] or [ProviderSyncCallback.onFailure].
+     * May be called from any thread. Calls [ProviderSyncCallback.onSuccess] or
+     * [ProviderSyncCallback.onFailure] exactly once.
      */
     fun sync(callback: ProviderSyncCallback)
 }

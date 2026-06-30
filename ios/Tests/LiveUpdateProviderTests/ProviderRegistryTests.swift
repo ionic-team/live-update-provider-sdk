@@ -92,10 +92,10 @@ final class ProviderRegistryTests: XCTestCase {
             do {
                 try registry.register(provider)
                 XCTFail("Expected register to throw for blank provider ID")
-            } catch ProviderError.invalidConfiguration(let details, _) {
-                XCTAssertTrue(details.contains("empty ID"))
+            } catch ProviderError.registrationFailed(let message) {
+                XCTAssertTrue(message.contains("empty ID"))
             } catch {
-                XCTFail("Expected invalidConfiguration, got: \(error)")
+                XCTFail("Expected registrationFailed, got: \(error)")
             }
         }
     }
@@ -109,10 +109,10 @@ final class ProviderRegistryTests: XCTestCase {
         do {
             try registry.register(MockProvider(id: providerId))
             XCTFail("Expected register to throw for duplicate provider ID")
-        } catch ProviderError.invalidConfiguration(let details, _) {
-            XCTAssertTrue(details.contains("already registered"))
+        } catch ProviderError.registrationFailed(let message) {
+            XCTAssertTrue(message.contains("already registered"))
         } catch {
-            XCTFail("Expected invalidConfiguration, got: \(error)")
+            XCTFail("Expected registrationFailed, got: \(error)")
         }
     }
 }

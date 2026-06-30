@@ -17,4 +17,8 @@ sealed class ProviderError(message: String, cause: Throwable? = null) : Exceptio
     /** No provider is registered for the requested identifier. */
     class ProviderNotRegistered(val providerId: String) :
         ProviderError("Live update provider '$providerId' is not registered.")
+
+    /** Provider registration failed. */
+    class RegistrationFailed(val details: String) :
+        ProviderError("Registration failed: $details")
 }

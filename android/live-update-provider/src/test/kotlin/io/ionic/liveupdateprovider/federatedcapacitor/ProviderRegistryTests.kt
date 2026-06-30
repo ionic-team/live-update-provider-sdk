@@ -45,21 +45,21 @@ class ProviderRegistryTests {
 
         try {
             ProviderRegistry.register(emptyIdProvider)
-            throw AssertionError("Expected InvalidConfiguration for empty ID")
-        } catch (error: ProviderError.InvalidConfiguration) {
+            throw AssertionError("Expected RegistrationFailed for empty ID")
+        } catch (error: ProviderError.RegistrationFailed) {
             assertTrue(error.details.contains("empty ID"))
         }
 
         try {
             ProviderRegistry.register(blankIdProvider)
-            throw AssertionError("Expected InvalidConfiguration for blank ID")
-        } catch (error: ProviderError.InvalidConfiguration) {
+            throw AssertionError("Expected RegistrationFailed for blank ID")
+        } catch (error: ProviderError.RegistrationFailed) {
             assertTrue(error.details.contains("empty ID"))
         }
     }
 
     @Test
-    fun `duplicate registration throws invalid configuration`() {
+    fun `duplicate registration throws RegistrationFailed`() {
         val id = uniqueProviderId()
         val first = TestProvider(id)
         val second = TestProvider(id)
@@ -67,8 +67,8 @@ class ProviderRegistryTests {
         ProviderRegistry.register(first)
         try {
             ProviderRegistry.register(second)
-            throw AssertionError("Expected InvalidConfiguration for duplicate ID")
-        } catch (error: ProviderError.InvalidConfiguration) {
+            throw AssertionError("Expected RegistrationFailed for duplicate ID")
+        } catch (error: ProviderError.RegistrationFailed) {
             assertTrue(error.details.contains("already registered"))
         }
     }
@@ -78,18 +78,18 @@ class ProviderRegistryTests {
         val id = uniqueProviderId()
         val first = TestProvider(id)
         ProviderRegistry.register(first)
-        val invalidConfigurationCount = AtomicInteger(0)
+        val registrationFailedCount = AtomicInteger(0)
 
         runConcurrent(times = 24) {
             try {
                 ProviderRegistry.register(TestProvider(id))
-            } catch (error: ProviderError.InvalidConfiguration) {
-                invalidConfigurationCount.incrementAndGet()
+            } catch (error: ProviderError.RegistrationFailed) {
+                registrationFailedCount.incrementAndGet()
             }
         }
 
         assertSame(first, ProviderRegistry.resolve(id))
-        assertEquals(24, invalidConfigurationCount.get())
+        assertEquals(24, registrationFailedCount.get())
     }
 
     @Test
