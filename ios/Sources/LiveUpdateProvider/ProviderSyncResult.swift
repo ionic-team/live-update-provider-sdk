@@ -1,9 +1,9 @@
-/// Marker protocol for provider-defined sync results.
+/// A provider-specific result from a sync operation.
 public protocol ProviderSyncResult {}
 
-/// A sync result carrying metadata for Federated Capacitor.
+/// A sync result containing provider metadata.
 public struct MetadataSyncResult: ProviderSyncResult {
-    /// Bridge-safe metadata returned with the sync result.
+    /// Metadata containing JSON-serializable values.
     public let metadata: [String: Any]
 
     public init(metadata: [String: Any]) {

@@ -2,25 +2,20 @@ package io.ionic.liveupdateprovider
 
 import java.io.File
 
-/** Manages live update assets for a configured app instance. */
+/** Manages a provider's live updates for a single app. */
 interface ProviderManager {
-    /** The latest app directory prepared by the provider, if one is available. */
+    /** The directory containing the latest app files on disk. */
     val latestAppDirectory: File?
 
-    /**
-     * Synchronizes provider-managed web assets.
-     *
-     * May be called from any thread. Calls [ProviderSyncCallback.onSuccess] or
-     * [ProviderSyncCallback.onFailure] exactly once.
-     */
+    /** Checks for updates and prepares the latest app files. */
     fun sync(callback: ProviderSyncCallback)
 }
 
-/** Receives the outcome of [ProviderManager.sync]. */
+/** Receives the result of a provider sync operation. */
 interface ProviderSyncCallback {
-    /** Called when synchronization succeeds, with `null` when there is no result to report. */
+    /** Called when the sync operation completes successfully. */
     fun onSuccess(result: ProviderSyncResult?)
 
-    /** Called when synchronization fails. */
-    fun onFailure(error: ProviderError.SyncFailed)
+    /** Called when the sync operation fails. */
+    fun onFailure(error: Throwable)
 }

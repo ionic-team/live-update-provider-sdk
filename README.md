@@ -10,7 +10,7 @@ Live Update Provider is the shared iOS and Android contract that lets [Ionic Por
 
 This project is centered around one main component: `ProviderManager`. A `ProviderManager` performs a sync for a single configured app instance and exposes the latest prepared app directory via `latestAppDirectory` for the host runtime to load. A provider implements the synchronization work behind it, including fetching, verifying, storing, and activating web assets.
 
-There are two integration paths. Ionic Portals constructs and uses a `ProviderManager` directly. Federated Capacitor resolves a registered provider by ID through `LiveUpdateProvider` and `ProviderRegistry`, which then creates a `ProviderManager`.
+There are two integration paths. Ionic Portals constructs and uses a `ProviderManager` directly. Federated Capacitor resolves a provider by its Capacitor plugin name and calls `createManager` on it directly, which returns a `ProviderManager`.
 
 ## Installation
 
@@ -65,12 +65,8 @@ final class ExampleManager: ProviderManager {
     }
 
     func sync() async throws -> (any ProviderSyncResult)? {
-        do {
-            latestAppDirectory = try prepareAssets()
-            return nil
-        } catch {
-            throw ProviderError.syncFailed(message: "Unable to sync live update assets.", underlyingError: error)
-        }
+        latestAppDirectory = try prepareAssets()
+        return nil
     }
 
     private func prepareAssets() throws -> URL {
@@ -83,7 +79,6 @@ final class ExampleManager: ProviderManager {
 #### Android
 
 ```kotlin
-import io.ionic.liveupdateprovider.ProviderError
 import io.ionic.liveupdateprovider.ProviderManager
 import io.ionic.liveupdateprovider.ProviderSyncCallback
 import java.io.File
@@ -97,9 +92,7 @@ class ExampleManager(private val appId: String) : ProviderManager {
             latestAppDirectory = prepareAssets()
             callback.onSuccess(null)
         } catch (error: Throwable) {
-            callback.onFailure(
-                ProviderError.SyncFailed("Unable to sync live update assets.", error)
-            )
+            callback.onFailure(error)
         }
     }
 
@@ -110,59 +103,53 @@ class ExampleManager(private val appId: String) : ProviderManager {
 }
 ```
 
-Kotlin callers can use the suspending `ProviderManager.sync()` extension from the `io.ionic.liveupdateprovider.coroutines` package instead of the callback API.
+Kotlin callers can use the suspending `ProviderManager.sync()` extension instead of the callback API.
 
 ### Ionic Portals
 
-A Portals integration uses the manager directly — no provider type or registry is involved. In your native app, construct your `ProviderManager` and attach it to the Portal's configuration. Portals reads `latestAppDirectory` to locate the web assets and calls `sync` to refresh them.
+A Portals integration uses the manager directly — no provider type is involved. In your native app, construct your `ProviderManager` and attach it to the Portal's configuration. Portals reads `latestAppDirectory` to locate the web assets and calls `sync` to refresh them.
 
 ### Federated Capacitor
 
-Federated Capacitor resolves providers at runtime, so a provider supplies two things beyond the manager: a `LiveUpdateProvider` that creates managers from configuration, and a registration call so the runtime can find it by ID. Package this as a Capacitor plugin, registering with `ProviderRegistry` when the plugin loads. A web app installs the plugin and, for each app, selects a provider and passes its configuration.
+Federated Capacitor resolves providers by their Capacitor plugin name — conform your plugin class to `LiveUpdateProvider` directly. A web app installs the plugin and, for each app, selects a provider by name and passes its configuration.
 
 See the [Federated Capacitor documentation](https://ionic.io/docs/portals/for-capacitor/live-updates) for more.
 
 #### iOS
 
 ```swift
+import Capacitor
 import LiveUpdateProvider
 
-final class ExampleProvider: LiveUpdateProvider {
-    let id = "example"
-
-    func createManager(config: [String: Any]) throws -> any ProviderManager {
-        guard let appId = config["appId"] as? String else {
+@objc(ExamplePlugin)
+final class ExamplePlugin: CAPPlugin, LiveUpdateProvider {
+    func createManager(configuration: [String: Any]) throws -> any ProviderManager {
+        guard let appId = configuration["appId"] as? String else {
             throw ProviderError.invalidConfiguration(message: "Missing appId.")
         }
         return ExampleManager(appId: appId)
     }
 }
-
-// In your Capacitor plugin's load():
-try ProviderRegistry.shared.register(ExampleProvider())
 ```
 
 #### Android
 
 ```kotlin
 import android.content.Context
+import com.getcapacitor.Plugin
+import com.getcapacitor.annotation.CapacitorPlugin
+import io.ionic.liveupdateprovider.LiveUpdateProvider
 import io.ionic.liveupdateprovider.ProviderError
 import io.ionic.liveupdateprovider.ProviderManager
-import io.ionic.liveupdateprovider.federatedcapacitor.LiveUpdateProvider
-import io.ionic.liveupdateprovider.federatedcapacitor.ProviderRegistry
 
-class ExampleProvider : LiveUpdateProvider {
-    override val id = "example"
-
-    override fun createManager(context: Context, config: Map<String, Any>): ProviderManager {
-        val appId = config["appId"] as? String
+@CapacitorPlugin(name = "example")
+class ExamplePlugin : Plugin(), LiveUpdateProvider {
+    override fun createManager(context: Context, configuration: Map<String, Any>): ProviderManager {
+        val appId = configuration["appId"] as? String
             ?: throw ProviderError.InvalidConfiguration("Missing appId.")
         return ExampleManager(appId)
     }
 }
-
-// In your Capacitor plugin's load():
-ProviderRegistry.register(ExampleProvider())
 ```
 
 See the [Capacitor documentation](https://capacitorjs.com/docs/plugins/creating-plugins) for building and publishing a plugin.
@@ -192,16 +179,14 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant Plugin as Provider Plugin
-    participant Registry as ProviderRegistry
+    participant Bridge as Capacitor Bridge
     participant Runtime as Federated Capacitor Runtime
-    participant Provider as LiveUpdateProvider
+    participant Provider as Provider Plugin
     participant Manager as ProviderManager
 
-    Plugin->>Registry: register(provider)
-    Runtime->>Registry: require(providerId)
-    Registry-->>Runtime: provider
-    Runtime->>Provider: createManager(config)
+    Runtime->>Bridge: getPlugin(pluginName)
+    Bridge-->>Runtime: plugin instance
+    Runtime->>Provider: createManager(configuration)
     Provider-->>Runtime: manager
     Runtime->>Manager: sync()
     Manager-->>Runtime: sync result

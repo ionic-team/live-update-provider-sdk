@@ -1,12 +1,12 @@
 package io.ionic.liveupdateprovider
 
-/** Marker interface for provider-defined sync results. */
+/** A provider-specific result from a sync operation. */
 interface ProviderSyncResult
 
 /**
- * A sync result carrying metadata for the Federated Capacitor bridge.
+ * A sync result containing provider metadata.
  *
- * @param metadata bridge-safe metadata returned with the sync result
+ * @param metadata Metadata containing JSON-serializable values.
  */
 data class MetadataSyncResult(
     val metadata: Map<String, Any>

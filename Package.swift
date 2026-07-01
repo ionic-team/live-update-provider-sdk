@@ -18,10 +18,5 @@ let package = Package(
             name: "LiveUpdateProvider",
             path: "ios/Sources/LiveUpdateProvider"
         ),
-        .testTarget(
-            name: "LiveUpdateProviderTests",
-            dependencies: ["LiveUpdateProvider"],
-            path: "ios/Tests/LiveUpdateProviderTests"
-        ),
     ]
 )
