@@ -17,5 +17,5 @@ interface ProviderSyncCallback {
     fun onSuccess(result: ProviderSyncResult?)
 
     /** Called when the sync operation fails. */
-    fun onFailure(error: Throwable)
+    fun onFailure(error: Exception)
 }

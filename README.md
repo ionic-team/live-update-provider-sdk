@@ -91,7 +91,7 @@ class ExampleManager(private val appId: String) : ProviderManager {
         try {
             latestAppDirectory = prepareAssets()
             callback.onSuccess(null)
-        } catch (error: Throwable) {
+        } catch (error: Exception) {
             callback.onFailure(error)
         }
     }
@@ -103,7 +103,28 @@ class ExampleManager(private val appId: String) : ProviderManager {
 }
 ```
 
-Kotlin callers can use the suspending `ProviderManager.sync()` extension instead of the callback API.
+Kotlin callers can use the suspending `ProviderManager.sync()` extension instead of the callback API. Kotlin implementers can extend `CoroutineProviderManager` and implement `performSync` as a plain suspend function instead of the callback:
+
+```kotlin
+import io.ionic.liveupdateprovider.CoroutineProviderManager
+import io.ionic.liveupdateprovider.ProviderSyncResult
+import java.io.File
+
+class ExampleManager(private val appId: String) : CoroutineProviderManager() {
+    override var latestAppDirectory: File? = null
+        private set
+
+    override suspend fun performSync(): ProviderSyncResult? {
+        latestAppDirectory = prepareAssets()
+        return null
+    }
+
+    private suspend fun prepareAssets(): File {
+        // Fetch, validate, store, and activate provider-managed assets.
+        return File("/path/to/latest/app")
+    }
+}
+```
 
 ### Ionic Portals
 

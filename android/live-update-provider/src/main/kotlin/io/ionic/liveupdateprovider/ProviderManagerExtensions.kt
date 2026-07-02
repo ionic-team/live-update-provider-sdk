@@ -18,7 +18,7 @@ suspend fun ProviderManager.sync(): ProviderSyncResult? =
                 if (continuation.isActive) continuation.resume(result)
             }
 
-            override fun onFailure(error: Throwable) {
+            override fun onFailure(error: Exception) {
                 if (continuation.isActive) continuation.resumeWithException(error)
             }
         })
