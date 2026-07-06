@@ -80,46 +80,21 @@ final class ExampleManager: ProviderManager {
 
 ```kotlin
 import io.ionic.liveupdateprovider.ProviderManager
-import io.ionic.liveupdateprovider.ProviderSyncCallback
+import io.ionic.liveupdateprovider.ProviderSyncResult
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class ExampleManager(private val appId: String) : ProviderManager {
     override var latestAppDirectory: File? = null
         private set
 
-    override fun sync(callback: ProviderSyncCallback) {
-        try {
-            latestAppDirectory = prepareAssets()
-            callback.onSuccess(null)
-        } catch (error: Exception) {
-            callback.onFailure(error)
-        }
+    override suspend fun sync(): ProviderSyncResult? = withContext(Dispatchers.IO) {
+        latestAppDirectory = prepareAssets()
+        null
     }
 
     private fun prepareAssets(): File {
-        // Fetch, validate, store, and activate provider-managed assets.
-        return File("/path/to/latest/app")
-    }
-}
-```
-
-Kotlin callers can use the suspending `ProviderManager.sync()` extension instead of the callback API. Kotlin implementers can extend `CoroutineProviderManager` and implement `performSync` as a plain suspend function instead of the callback:
-
-```kotlin
-import io.ionic.liveupdateprovider.CoroutineProviderManager
-import io.ionic.liveupdateprovider.ProviderSyncResult
-import java.io.File
-
-class ExampleManager(private val appId: String) : CoroutineProviderManager() {
-    override var latestAppDirectory: File? = null
-        private set
-
-    override suspend fun performSync(): ProviderSyncResult? {
-        latestAppDirectory = prepareAssets()
-        return null
-    }
-
-    private suspend fun prepareAssets(): File {
         // Fetch, validate, store, and activate provider-managed assets.
         return File("/path/to/latest/app")
     }

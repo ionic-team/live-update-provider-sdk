@@ -7,6 +7,10 @@ public protocol ProviderManager {
 
     /// Checks for updates and prepares the latest app files.
     ///
+    /// Implementations should perform blocking work off the cooperative thread pool
+    /// (e.g. via a detached `Task` or an appropriate executor) rather than blocking
+    /// the calling task.
+    ///
     /// - Returns: A sync result, or `nil` when no update is available.
     func sync() async throws -> (any ProviderSyncResult)?
 }

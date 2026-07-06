@@ -7,15 +7,13 @@ interface ProviderManager {
     /** The directory containing the latest app files on disk. */
     val latestAppDirectory: File?
 
-    /** Checks for updates and prepares the latest app files. */
-    fun sync(callback: ProviderSyncCallback)
-}
-
-/** Receives the result of a provider sync operation. */
-interface ProviderSyncCallback {
-    /** Called when the sync operation completes successfully. */
-    fun onSuccess(result: ProviderSyncResult?)
-
-    /** Called when the sync operation fails. */
-    fun onFailure(error: Exception)
+    /**
+     * Checks for updates and prepares the latest app files.
+     *
+     * Implementations should perform blocking work via an appropriate dispatcher
+     * (e.g. `withContext(Dispatchers.IO)`) rather than blocking the calling coroutine.
+     *
+     * @return A sync result, or `null` when no update is available.
+     */
+    suspend fun sync(): ProviderSyncResult?
 }
