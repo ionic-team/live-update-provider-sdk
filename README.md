@@ -109,6 +109,8 @@ A Portals integration uses the manager directly — no provider type is involved
 
 Federated Capacitor resolves providers by their Capacitor plugin name — conform your plugin class to `LiveUpdateProvider` directly. A web app installs the plugin and, for each app, selects a provider by name and passes its configuration.
 
+Return a `MetadataSyncResult` from `sync()` when a provider needs to pass data back to the web layer after a sync. Federated Capacitor forwards `metadata` to JavaScript, so values must be bridge-safe (JSON-serializable).
+
 See the [Federated Capacitor documentation](https://ionic.io/docs/portals/for-capacitor/live-updates) for more.
 
 #### iOS
