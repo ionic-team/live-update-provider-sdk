@@ -13,7 +13,7 @@ interface ProviderManager {
      * Implementations should perform blocking work via an appropriate dispatcher
      * (e.g. `withContext(Dispatchers.IO)`) rather than blocking the calling coroutine.
      *
-     * @return A sync result, or `null` when no update is available.
+     * @return A provider-defined sync result.
      */
     suspend fun sync(): ProviderSyncResult?
 }

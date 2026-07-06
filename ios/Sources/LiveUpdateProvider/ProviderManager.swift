@@ -11,6 +11,6 @@ public protocol ProviderManager {
     /// (e.g. via a detached `Task` or an appropriate executor) rather than blocking
     /// the calling task.
     ///
-    /// - Returns: A sync result, or `nil` when no update is available.
+    /// - Returns: A provider-defined sync result.
     func sync() async throws -> (any ProviderSyncResult)?
 }
