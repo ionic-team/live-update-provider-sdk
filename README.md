@@ -21,7 +21,7 @@ Swift Package Manager:
 ```swift
 .package(
     url: "https://github.com/ionic-team/live-update-provider-sdk.git",
-    from: "0.2.0"
+    from: "1.0.0"
 )
 ```
 
@@ -32,7 +32,7 @@ Swift Package Manager:
 CocoaPods:
 
 ```ruby
-pod 'LiveUpdateProvider', '~> 0.2.0'
+pod 'LiveUpdateProvider', '~> 1.0.0'
 ```
 
 ### Android
@@ -41,7 +41,7 @@ Gradle:
 
 ```kotlin
 dependencies {
-    implementation("io.ionic:liveupdateprovider:0.2.0")
+    implementation("io.ionic:liveupdateprovider:1.0.0")
 }
 ```
 
