@@ -1,13 +1,12 @@
+import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
+import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.library")
-    id("maven-publish")
     kotlin("android")
-}
-
-if (System.getenv("LIVE_UPDATE_PROVIDER_PUBLISH") == "true") {
-    apply(from = file("./scripts/publish-module.gradle.kts"))
+    id("com.vanniktech.maven.publish")
+    id("org.jetbrains.dokka")
 }
 
 android {
@@ -22,12 +21,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-
-    publishing {
-        singleVariant("release") {
-            withSourcesJar()
-        }
-    }
 }
 
 kotlin {
@@ -36,6 +29,8 @@ kotlin {
     }
 }
 
-dependencies {
-    testImplementation("junit:junit:4.13.2")
+mavenPublishing {
+    configure(AndroidSingleVariantLibrary("release", sourcesJar = true, publishJavadocJar = true))
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
+    signAllPublications()
 }

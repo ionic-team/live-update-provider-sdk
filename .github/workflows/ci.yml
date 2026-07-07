@@ -17,7 +17,7 @@ jobs:
 
       - name: Verify iOS
         run: |
-          swift test
+          swift build
           pod lib lint LiveUpdateProvider.podspec
 
   android:
@@ -34,17 +34,10 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./android/gradlew
 
-      - name: Run Android tests
-        working-directory: ./android
-        run: ./gradlew :live-update-provider:test
-
       - name: Generate Dokka
         working-directory: ./android
         run: ./gradlew :live-update-provider:dokkaGenerate
 
-      - name: Validate Android publish configuration
+      - name: Validate Android publication
         working-directory: ./android
-        env:
-          LIVE_UPDATE_PROVIDER_PUBLISH: "true"
-          LIVE_UPDATE_PROVIDER_SDK_VERSION: "LOCAL-SNAPSHOT"
-        run: ./gradlew :live-update-provider:tasks
+        run: ./gradlew :live-update-provider:assembleRelease

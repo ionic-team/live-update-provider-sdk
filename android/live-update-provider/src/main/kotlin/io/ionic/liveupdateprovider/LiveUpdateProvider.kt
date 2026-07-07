@@ -2,28 +2,19 @@ package io.ionic.liveupdateprovider
 
 import android.content.Context
 
-/**
- * Creates [LiveUpdateProviderManager] instances from provider-specific configuration.
- *
- * This contract is used for Federated Capacitor provider registration, lookup,
- * and manager creation.
- */
+/** Creates managers for a live update provider. */
 interface LiveUpdateProvider {
-    /** Provider identifier used for registration and runtime lookup. */
-    val id: String
-
     /**
-     * Creates a manager for this provider.
+     * Creates a manager for a single app.
      *
-     * @param context Android context used by the provider (application context recommended).
-     * @param config Provider-specific configuration required to build a manager.
-     * @return A configured manager instance.
-     * @throws LiveUpdateProviderError.InvalidConfiguration when configuration is invalid
-     * or manager creation fails.
+     * @param context Android context for manager creation.
+     * @param configuration Provider-specific configuration values.
+     * @throws ProviderError.InvalidConfiguration when [configuration] is invalid.
+     * @return A manager that can sync and resolve the app's latest files.
      */
-    @Throws(LiveUpdateProviderError.InvalidConfiguration::class)
+    @Throws(ProviderError.InvalidConfiguration::class)
     fun createManager(
         context: Context,
-        config: Map<String, Any>
-    ): LiveUpdateProviderManager
+        configuration: Map<String, Any>
+    ): ProviderManager
 }
