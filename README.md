@@ -101,6 +101,57 @@ class ExampleManager(private val appId: String) : ProviderManager {
 }
 ```
 
+#### Implementing from Java
+
+`ProviderManager.sync()` is a Kotlin `suspend fun`, which Java cannot implement directly. If your provider is otherwise written in Java, add one small Kotlin class that implements `ProviderManager` and delegates to your existing Java code — the rest of your plugin, including whatever implements `LiveUpdateProvider`, can stay in Java. This SDK does not depend on `kotlinx-coroutines`, so add `org.jetbrains.kotlinx:kotlinx-coroutines-android` to your own project to use the APIs below.
+
+If your Java code is callback-based, bridge it with `suspendCancellableCoroutine`:
+
+```kotlin
+import io.ionic.liveupdateprovider.ProviderManager
+import io.ionic.liveupdateprovider.ProviderSyncResult
+import java.io.File
+import kotlin.coroutines.resumeWithException
+import kotlinx.coroutines.resume
+import kotlinx.coroutines.suspendCancellableCoroutine
+
+class ExampleManager(private val javaManager: ExampleJavaManager) : ProviderManager {
+    override val latestAppDirectory: File?
+        get() = javaManager.latestAppDirectory
+
+    override suspend fun sync(): ProviderSyncResult? = suspendCancellableCoroutine { continuation ->
+        javaManager.sync(object : ExampleJavaManager.Callback {
+            override fun onSuccess(result: ProviderSyncResult?) {
+                continuation.resume(result)
+            }
+
+            override fun onFailure(error: Exception) {
+                continuation.resumeWithException(error)
+            }
+        })
+    }
+}
+```
+
+If your Java code is blocking, wrap it with `withContext(Dispatchers.IO)` instead:
+
+```kotlin
+import io.ionic.liveupdateprovider.ProviderManager
+import io.ionic.liveupdateprovider.ProviderSyncResult
+import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+class ExampleManager(private val javaManager: ExampleJavaManager) : ProviderManager {
+    override val latestAppDirectory: File?
+        get() = javaManager.latestAppDirectory
+
+    override suspend fun sync(): ProviderSyncResult? = withContext(Dispatchers.IO) {
+        javaManager.syncBlocking()
+    }
+}
+```
+
 ### Ionic Portals
 
 A Portals integration uses the manager directly — no provider type is involved. In your native app, construct your `ProviderManager` and attach it to the Portal's configuration. Portals reads `latestAppDirectory` to locate the web assets and calls `sync` to refresh them.
