@@ -107,7 +107,7 @@ A Portals integration uses the manager directly — no provider type is involved
 
 ### Federated Capacitor
 
-Federated Capacitor resolves providers by their Capacitor plugin name — conform your plugin class to `LiveUpdateProvider` directly. A web app installs the plugin and, for each app, selects a provider by name and passes its configuration.
+Federated Capacitor resolves providers by their Capacitor plugin name: iOS's `jsName`, Android's `@CapacitorPlugin(name = ...)`. Conform your plugin class to `LiveUpdateProvider` directly and keep that value identical on both platforms. A web app installs the plugin and, for each app, selects a provider by name and passes its configuration.
 
 Return a `MetadataSyncResult` from `sync()` when a provider needs to pass data back to the web layer after a sync. Federated Capacitor forwards `metadata` to JavaScript, so values must be bridge-safe (JSON-serializable).
 
@@ -120,7 +120,13 @@ import Capacitor
 import LiveUpdateProvider
 
 @objc(ExamplePlugin)
-final class ExamplePlugin: CAPPlugin, LiveUpdateProvider {
+final class ExamplePlugin: CAPPlugin, CAPBridgedPlugin, LiveUpdateProvider {
+    public let identifier = "ExamplePlugin"
+    public let jsName = "Example"
+    public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "createManager", returnType: CAPPluginReturnPromise)
+    ]
+
     func createManager(configuration: [String: Any]) throws -> any ProviderManager {
         guard let appId = configuration["appId"] as? String else {
             throw ProviderError.invalidConfiguration(message: "Missing appId.")
@@ -140,7 +146,7 @@ import io.ionic.liveupdateprovider.LiveUpdateProvider
 import io.ionic.liveupdateprovider.ProviderError
 import io.ionic.liveupdateprovider.ProviderManager
 
-@CapacitorPlugin(name = "example")
+@CapacitorPlugin(name = "Example")
 class ExamplePlugin : Plugin(), LiveUpdateProvider {
     override fun createManager(context: Context, configuration: Map<String, Any>): ProviderManager {
         val appId = configuration["appId"] as? String
