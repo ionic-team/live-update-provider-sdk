@@ -158,7 +158,9 @@ A Portals integration uses the manager directly — no provider type is involved
 
 ### Federated Capacitor
 
-Federated Capacitor resolves providers by their Capacitor plugin name: iOS's `jsName`, Android's `@CapacitorPlugin(name = ...)`. Conform your plugin class to `LiveUpdateProvider` directly and keep that value identical on both platforms. A web app installs the plugin and, for each app, selects a provider by name and passes its configuration.
+Federated Capacitor resolves providers by their Capacitor plugin name: iOS's `jsName`, Android's `@CapacitorPlugin(name = ...)`. Conform your plugin class to `LiveUpdateProvider` directly and keep that value identical on both platforms. A web app installs the plugin and, for each app, selects a provider by name and passes its configuration. 
+
+If your plugin ships standalone to consumers who never use live updates, see [Optional dependency on Android](#optional-dependency-on-android) below for a way to avoid a hard dependency on this SDK.
 
 Return a `MetadataSyncResult` from `sync()` when a provider needs to pass data back to the web layer after a sync. Federated Capacitor forwards `metadata` to JavaScript, so values must be bridge-safe (JSON-serializable).
 
@@ -206,6 +208,31 @@ class ExamplePlugin : Plugin(), LiveUpdateProvider {
     }
 }
 ```
+
+##### Optional dependency on Android
+
+Conforming to `LiveUpdateProvider` directly is the simplest option, and costs nothing extra for plugins that are only ever installed alongside Federated Capacitor or Portals. If your plugin also ships standalone to consumers who never use live updates, conformance forces all of them to carry Live Update Provider as a hard runtime dependency: Android resolves a class's declared interfaces eagerly when the class loads, so a plugin class implementing `LiveUpdateProvider` requires the SDK to be present the moment Capacitor instantiates it — whether or not `createManager` is ever called.
+
+To keep the dependency optional, skip the `LiveUpdateProvider` conformance and expose a method with the identical signature instead:
+
+```kotlin
+@CapacitorPlugin(name = "Example")
+class ExamplePlugin : Plugin() {
+    fun createManager(context: Context, configuration: Map<String, Any>): ProviderManager {
+        val appId = configuration["appId"] as? String
+            ?: throw ProviderError.InvalidConfiguration("Missing appId.")
+        return ExampleManager(appId)
+    }
+}
+```
+
+```kotlin
+dependencies {
+    compileOnly("io.ionic:liveupdateprovider:1.0.0")
+}
+```
+
+Federated Capacitor resolves a plugin by first attempting to cast it to `LiveUpdateProvider`; if that fails, it falls back to resolving `createManager` reflectively and invoking it.
 
 See the [Capacitor documentation](https://capacitorjs.com/docs/plugins/creating-plugins) for building and publishing a plugin.
 
