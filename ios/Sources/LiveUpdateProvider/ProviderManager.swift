@@ -3,6 +3,9 @@ import Foundation
 /// Manages a provider's live updates for a single app.
 public protocol ProviderManager {
     /// The directory containing the latest app files on disk.
+    ///
+    /// Hosts may read this on the main thread. Implementations should return a
+    /// cached value rather than performing I/O or other blocking work.
     var latestAppDirectory: URL? { get }
 
     /// Checks for updates and prepares the latest app files.

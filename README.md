@@ -279,6 +279,7 @@ sequenceDiagram
 
 - Keep `latestAppDirectory` pointed at the latest valid app directory. Do not point it at partial or invalid assets.
 - Restore `latestAppDirectory` from persisted state when a manager is created so the host can load existing assets on launch.
+- Make `latestAppDirectory` a fast, synchronous lookup — hosts may read it on the main thread, so cache the value rather than doing I/O or other blocking work in the getter.
 - Own service-specific behavior such as authentication, artifact verification, cleanup, and rollback.
 
 ## Related Resources
